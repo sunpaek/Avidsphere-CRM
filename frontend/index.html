@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avidsphere CRM</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <div class="brand-mark">
+          <img src="Assets/logo.png" alt="Avidsphere logo" class="brand-logo" />
+          <div>
+            <p class="eyebrow">Avidsphere</p>
+            <h1>CRM Command Center</h1>
+          </div>
+        </div>
+        <p class="subtitle">Customer intelligence, sales tracking, reminders, and team coordination in one workspace.</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="topbar-card">
+          <label>Current User</label>
+          <div id="currentUserName" class="current-user-display">Sunny</div>
+          <div id="currentUserRoleLabel" class="current-user-role">Role: Sales Staff</div>
+        </div>
+        <div class="topbar-card">
+          <label for="currentRole">Current Role</label>
+          <select id="currentRole">
+            <option value="Sales Staff">Sales Staff</option>
+            <option value="Management">Management</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout-grid">
+      <aside class="sidebar">
+        <section class="summary-card">
+          <p class="eyebrow">Live Snapshot</p>
+          <h2>Current activity</h2>
+          <div class="stat-row"><span>Total Customers</span><strong id="customerCount">0</strong></div>
+          <div class="stat-row"><span>Open Reminders</span><strong id="reminderCount">0</strong></div>
+          <div class="stat-row"><span>Notifications</span><strong id="notificationCount">0</strong></div>
+        </section>
+
+        <section class="summary-card">
+          <p class="eyebrow">Navigation</p>
+          <h2>Quick access</h2>
+          <div class="nav-stack">
+            <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+            <button class="nav-btn" data-view="customers">Customers</button>
+            <button class="nav-btn" data-view="sales">Sales</button>
+            <button class="nav-btn" data-view="reminders">Calendar</button>
+            <button class="nav-btn" data-view="management">Reports &amp; Analytics</button>
+            <button class="nav-btn" data-view="notifications">Notifications</button>
+          </div>
+        </section>
+
+        <section class="summary-card">
+          <p class="eyebrow">Role Access</p>
+          <h2>Current permissions</h2>
+          <ul id="roleAccessList" class="role-access-list"></ul>
+        </section>
+      </aside>
+
+      <section class="content-area">
+        <section id="dashboard" class="content-panel active-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Dashboard</p>
+              <h2>Daily command center</h2>
+            </div>
+            <p class="panel-help">Prioritized actions, recent sales, follow-up risk, and pipeline health.</p>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="report-card">
+              <span>Total Customers</span>
+              <strong id="dashboardCustomerCount">0</strong>
+              <small>All customer records</small>
+            </div>
+            <div class="report-card">
+              <span>Active Customers</span>
+              <strong id="dashboardActiveCustomerCount">0</strong>
+              <small>Customers currently in motion</small>
+            </div>
+            <div class="report-card">
+              <span>Open Reminders</span>
+              <strong id="dashboardReminderCount">0</strong>
+              <small>Follow-ups still pending</small>
+            </div>
+            <div class="report-card">
+              <span>Sales This Month</span>
+              <strong id="dashboardMonthlySaleCount">0</strong>
+              <small>Orders logged this month</small>
+            </div>
+            <div class="report-card">
+              <span>Revenue This Month</span>
+              <strong id="dashboardMonthlySales">$0</strong>
+              <small>Current month revenue</small>
+            </div>
+          </div>
+
+          <div class="dashboard-lower-grid dashboard-focus-grid">
+            <section class="data-card">
+              <p class="eyebrow">Today / This Week</p>
+              <h3>What needs attention</h3>
+              <div id="dashboardFocusList" class="action-list"></div>
+            </section>
+
+            <section class="data-card">
+              <p class="eyebrow">Recent Activity</p>
+              <h3>Recent sales activity</h3>
+              <div id="dashboardRecentSales" class="compact-list"></div>
+            </section>
+          </div>
+
+          <div class="dashboard-lower-grid">
+            <section class="data-card">
+              <p class="eyebrow">Follow-Up Queue</p>
+              <h3>Customers needing attention</h3>
+              <div id="dashboardFollowUpQueue" class="compact-list"></div>
+            </section>
+
+            <section class="data-card">
+              <p class="eyebrow">Pipeline Snapshot</p>
+              <h3>Pipeline and product mix</h3>
+              <div id="dashboardPipelineSnapshot" class="pipeline-snapshot"></div>
+            </section>
+          </div>
+
+        </section>
+
+        <section id="customers" class="content-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Customers</p>
+              <h2>Customer database</h2>
+            </div>
+            <p class="panel-help">Create, edit, search, and manage customer relationships in one place.</p>
+          </div>
+
+          <div class="card-grid two-column">
+            <section class="data-card">
+              <p class="eyebrow">Customer record</p>
+              <h3>Customer form</h3>
+              <form id="customerForm" class="crm-form">
+                <input type="hidden" id="customerId" />
+                <label>Business Name<input type="text" id="businessName" required /></label>
+                <label>Business Address<input type="text" id="businessAddress" required /></label>
+                <label>Contact Person<input type="text" id="contactPerson" required /></label>
+                <label>Email Address<input type="email" id="emailAddress" required /></label>
+                <label>Phone Number<input type="tel" id="phoneNumber" required /></label>
+                <label>Customer Status
+                  <select id="customerStatus">
+                    <option value="Prospect">Prospect</option>
+                    <option value="Active">Active</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+                </label>
+                <label>Notes
+                  <textarea id="customerNotes" rows="4" placeholder="Meeting notes, competitive intel, opportunities..."></textarea>
+                </label>
+                <div class="form-actions">
+                  <button type="submit" class="primary-btn">Save Customer</button>
+                  <button type="button" id="clearCustomerForm" class="secondary-btn">Clear</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="data-card">
+              <p class="eyebrow">Find & sort</p>
+              <h3>Customer views</h3>
+              <div class="filter-grid">
+                <label>Search<input type="search" id="customerSearch" placeholder="Search by business, contact, or email" /></label>
+                <label>Filter by Status
+                  <select id="customerStatusFilter">
+                    <option value="All">All</option>
+                    <option value="Prospect">Prospect</option>
+                    <option value="Active">Active</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+                </label>
+                <label>Filter by Representative
+                  <select id="representativeFilter"><option value="All">All</option></select>
+                </label>
+                <label>Sort By
+                  <select id="customerSortField">
+                    <option value="dateCreated">Date Created</option>
+                    <option value="businessName">Business Name</option>
+                    <option value="lastContactDate">Last Contact Date</option>
+                    <option value="customerStatus">Customer Status</option>
+                    <option value="assignedSalesRepresentative">Representative</option>
+                  </select>
+                </label>
+                <label>Direction
+                  <select id="customerSortDirection">
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
+                  </select>
+                </label>
+              </div>
+              <div id="customerTableWrap" class="table-wrap customer-card-list-wrap"></div>
+            </section>
+          </div>
+
+          <section id="customerDetailPanel" class="data-card hidden">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Order History</p>
+                <h3 id="customerDetailName">Select a customer to view order history.</h3>
+              </div>
+              <p class="panel-help">View sales history, recent orders, summary metrics, and reorder from a customer profile.</p>
+            </div>
+            <div id="customerSummaryGrid" class="detail-stats-grid"></div>
+            <div id="customerRecentOrders" class="recent-orders-grid"></div>
+            <div id="customerOrderHistory" class="table-wrap"></div>
+            <div id="customerOrderDetailPanel" class="data-card hidden"></div>
+          </section>
+        </section>
+
+        <section id="sales" class="content-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Sales</p>
+              <h2>Sales ledger</h2>
+            </div>
+            <p class="panel-help">Record and edit sales transactions for customers.</p>
+          </div>
+
+          <div class="card-grid two-column">
+            <section class="data-card">
+              <p class="eyebrow">Add sale</p>
+              <h3>Sale form</h3>
+              <form id="saleForm" class="crm-form" novalidate>
+                <input type="hidden" id="saleAmount" />
+                <label>Customer<select id="saleCustomer"></select></label>
+                <label>Product Category<select id="saleCategory"><option value="">Select category</option><option value="Mailer">Mailers</option><option value="Digital">Digital</option><option value="Print">Print</option></select></label>
+
+                <div id="saleProductDetails" class="sale-product-details">
+                  <div id="mailerFields" class="conditional-group hidden">
+                    <p class="section-label">Mailer details</p>
+                    <div class="mailer-top-grid">
+                      <label class="compact">Mailer Area<select id="saleMailerArea"><option value="">Select area</option><option value="17601">17601</option><option value="17602">17602</option><option value="17603">17603</option><option value="Blandon">Blandon</option><option value="Denver">Denver</option><option value="Elizabethtown">Elizabethtown</option><option value="Ephrata">Ephrata</option><option value="Hershey">Hershey</option><option value="Lebanon">Lebanon</option><option value="Lititz">Lititz</option><option value="Manheim">Manheim</option><option value="Manheim Twp">Manheim Twp</option><option value="Millersville">Millersville</option><option value="Muhlenberg">Muhlenberg</option><option value="Myerstown">Myerstown</option><option value="New Holland">New Holland</option><option value="Palmyra">Palmyra</option><option value="Shillington">Shillington</option><option value="Sinking Spring">Sinking Spring</option><option value="Willow Street">Willow Street</option></select></label>
+                      <label class="compact">Start Month<select id="saleMailerMonth"><option value="">Select month</option><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></label>
+                      <label class="compact">Run Time (Months)<select id="saleMailerRunTime"><option value="">Select runtime</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select></label>
+                    </div>
+
+                    <div class="mailer-adsize-row">
+                      <label>Ad Size<select id="saleMailerAdSize"><option value="">Select size</option><option value="3x4">3x4</option><option value="3x8">3x8</option><option value="3x12">3x12</option><option value="4x6">4x6</option><option value="4x9">4x9</option></select></label>
+                    </div>
+
+                    <div class="pricing-card">
+                      <p class="section-label">Pricing Summary</p>
+                      <div class="pricing-row"><span>Base Price</span><input type="text" id="saleMailerMonthlyRate" readonly placeholder="$0.00" /></div>
+                      <div class="pricing-row"><span>Subtotal</span><input type="text" id="saleMailerSubtotal" readonly placeholder="$0.00" /></div>
+                      <div class="pricing-row small"><span>Discount</span><div class="discount-controls"><select id="saleMailerDiscountType"><option value="None">None</option><option value="Dollar Amount">Dollar Amount</option><option value="Percentage">Percentage</option></select><input type="number" id="saleMailerDiscountValue" min="0" step="0.01" placeholder="0" /></div></div>
+                      <div class="pricing-row small"><span>Design Required Fee</span><input type="text" id="saleMailerDesignRequiredAmount" readonly placeholder="$0.00" /></div>
+                      <div class="pricing-row small"><span>Design Change Fee</span><input type="text" id="saleMailerDesignChangeAmount" readonly placeholder="$0.00" /></div>
+                      <div class="pricing-row total"><strong>Total</strong><input type="text" id="saleMailerTotalInvestment" readonly placeholder="$0.00" /></div>
+                    </div>
+
+                  </div>
+
+                  <div id="digitalFields" class="conditional-group hidden">
+                    <p class="section-label">Digital services</p>
+
+                    <div class="product-section">
+                      <h4 class="eyebrow">Product Details</h4>
+                      <label>Service<select id="saleDigitalService"><option value="">Select service</option><option value="Social Media Management">Social Media Management</option><option value="Geofencing">Geofencing</option><option value="Website">Website</option><option value="Paid Ads">Paid Ads</option></select></label>
+                    </div>
+
+                    <div class="campaign-section">
+                      <h4 class="eyebrow">Campaign Details</h4>
+                      <p class="section-help">Fill only the fields relevant to the selected digital service.</p>
+
+                      <div id="digitalSocialFields" class="nested-group hidden">
+                        <p class="section-label">Account Details</p>
+                        <div class="multi-select" id="saleSocialMulti">
+                          <button type="button" class="multi-select-toggle" id="saleSocialToggle">Select Platforms ▾</button>
+                          <div class="multi-select-dropdown hidden" id="saleSocialDropdown">
+                            <div id="saleSocialPlatforms" class="checkbox-grid">
+                              <label class="checkbox-label"><input type="checkbox" name="saleSocialPlatform" value="Facebook" /> Facebook</label>
+                              <label class="checkbox-label"><input type="checkbox" name="saleSocialPlatform" value="Instagram" /> Instagram</label>
+                              <label class="checkbox-label"><input type="checkbox" name="saleSocialPlatform" value="TikTok" /> TikTok</label>
+                              <label class="checkbox-label"><input type="checkbox" name="saleSocialPlatform" value="YouTube" /> YouTube</label>
+                              <label class="checkbox-label"><input type="checkbox" name="saleSocialPlatform" value="Snapchat" /> Snapchat</label>
+                              <label class="checkbox-label"><input type="checkbox" name="saleSocialPlatform" value="LinkedIn" /> LinkedIn</label>
+                              <label class="checkbox-label"><input type="checkbox" name="saleSocialPlatform" value="X (Twitter)" /> X (Twitter)</label>
+                            </div>
+                          </div>
+                          <div id="saleSocialChips" class="chips"></div>
+                          <div id="socialUsernamesContainer" class="social-usernames"></div>
+                        </div>
+                        <label>Start Date<input type="date" id="saleSocialStartDate" /></label>
+
+                        <p class="section-label">Campaign Details</p>
+                        <label>Service Notes<textarea id="saleDigitalCampaignNotes" rows="2" placeholder="Other campaign notes"></textarea></label>
+                        <label>Goals / Objectives<textarea id="saleDigitalCampaignGoal" rows="2" placeholder="What is the goal of this campaign?"></textarea></label>
+                      </div>
+
+                      <div id="digitalPaidAdsFields" class="nested-group hidden">
+                        <p class="section-label">Ad Platforms</p>
+                        <div class="multi-select" id="salePaidAdsMulti">
+                          <button type="button" class="multi-select-toggle" id="salePaidAdsToggle">Select Platforms ▾</button>
+                          <div class="multi-select-dropdown hidden" id="salePaidAdsDropdown">
+                            <div id="salePaidAdsPlatforms" class="checkbox-grid">
+                              <label class="checkbox-label"><input type="checkbox" name="salePaidAdsPlatform" value="Meta Ads" /> Meta Ads</label>
+                              <label class="checkbox-label"><input type="checkbox" name="salePaidAdsPlatform" value="Google Ads" /> Google Ads</label>
+                              <label class="checkbox-label"><input type="checkbox" name="salePaidAdsPlatform" value="YouTube Ads" /> YouTube Ads</label>
+                              <label class="checkbox-label"><input type="checkbox" name="salePaidAdsPlatform" value="TikTok Ads" /> TikTok Ads</label>
+                              <label class="checkbox-label"><input type="checkbox" name="salePaidAdsPlatform" value="Snapchat Ads" /> Snapchat Ads</label>
+                              <label class="checkbox-label"><input type="checkbox" name="salePaidAdsPlatform" value="LinkedIn Ads" /> LinkedIn Ads</label>
+                              <label class="checkbox-label"><input type="checkbox" name="salePaidAdsPlatform" value="Other Paid Ads" id="salePaidAdsOtherCheckbox" /> Other</label>
+                            </div>
+                          </div>
+                          <div id="salePaidAdsChips" class="chips"></div>
+                        </div>
+                        <label id="saleOtherPaidAdsPlatformContainer" class="hidden">Other Paid Ad Platform<input type="text" id="saleOtherPaidAdsPlatform" placeholder="Pinterest Ads" /></label>
+                        
+                        <label>Geographic Targeting / Locations<input type="text" id="saleDigitalTargetAreas" placeholder="Cities, counties, regions" /></label>
+                        <label>Demographic Targeting<div class="filter-grid"><label>Age Range<input type="text" id="saleDigitalAge" placeholder="e.g. 25-45" /></label><label>Gender<input type="text" id="saleDigitalSex" placeholder="e.g. All, Female, Male" /></label><label>Income<input type="text" id="saleDigitalIncome" placeholder="e.g. $45k+" /></label></div></label>
+                        <label>Monthly Ad Spend<input type="number" id="saleDigitalMonthlySpend" step="1" placeholder="Budget in USD" /></label>
+                        <label>Start Date<input type="date" id="saleDigitalStartDate" /></label>
+                      </div>
+
+                      <div id="digitalGeofencingFields" class="nested-group hidden">
+                        <p class="section-label">Campaign Details</p>
+                        <label>Campaign Type<select id="saleGeofenceCampaignType"><option value="">Select campaign type</option><option value="Static Display">Static Display</option><option value="Smart TV">Smart TV</option><option value="Video">Video</option></select></label>
+                        <label>Target Geographic Areas<input type="text" id="saleGeofenceTargetAreas" placeholder="Cities, counties, regions" /></label>
+                        <label>Target Specific Locations<input type="text" id="saleGeofenceTargetLocations" placeholder="Specific venues, neighborhoods" /></label>
+                        <div class="filter-grid">
+                          <label>Age Range<input type="text" id="saleGeofenceAge" placeholder="e.g. 25-45" /></label>
+                          <label>Gender<input type="text" id="saleGeofenceSex" placeholder="e.g. All, Female, Male" /></label>
+                          <label>Income<input type="text" id="saleGeofenceIncome" placeholder="e.g. $45k+" /></label>
+                        </div>
+                        <label>Monthly Ad Spend<input type="number" id="saleGeofenceMonthlySpend" step="1" placeholder="Budget in USD" /></label>
+                        <label>Start Date<input type="date" id="saleGeofenceStartDate" /></label>
+                        <p class="section-help">Use the main Notes field below for geofencing campaign notes.</p>
+                      </div>
+
+                      <div id="digitalWebsiteFields" class="nested-group hidden">
+                        <p class="section-label">Project Details</p>
+                        <label>Website Option<select id="saleWebsiteOption"><option value="">Select option</option><option value="New Build">New Build</option><option value="Redo Current Site">Redo Current Site</option><option value="Landing Pages">Landing Pages</option></select></label>
+                        <label>Current Website / URL<input type="text" id="saleWebsiteUrl" placeholder="https://example.com" /></label>
+                        <label>Desired Website / Goals<input type="text" id="saleWebsitePrimaryGoal" placeholder="Lead gen, e-commerce, information" /></label>
+                        <p class="section-help">Use the main Notes field below for additional website notes.</p>
+                      </div>
+
+                    </div>
+
+                    <div class="pricing-section">
+                      <h4 class="eyebrow">Pricing</h4>
+                      <div class="pricing-card">
+                        <div class="pricing-row"><span>Service Price</span><input type="number" id="saleDigitalServicePrice" min="0" step="0.01" placeholder="0" /></div>
+                        <div class="pricing-row small"><span>Discount</span><div class="discount-controls"><select id="saleDigitalDiscountType"><option value="None">None</option><option value="Dollar Amount">Dollar Amount</option><option value="Percentage">Percentage</option></select><input type="number" id="saleDigitalDiscountValue" min="0" step="0.01" placeholder="0" /></div></div>
+                        <div class="pricing-row total"><strong>Total</strong><input type="text" id="saleDigitalTotalInvestment" readonly placeholder="$0.00" /></div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div id="printFields" class="conditional-group hidden">
+                    <div class="product-section">
+                      <h4 class="eyebrow">Project Details</h4>
+                      <div class="compact-row">
+                        <label class="compact">Print Service<select id="salePrintType"><option value="">Select print service</option>
+                          <option>BANNERS</option>
+                          <option>BROCHURES</option>
+                          <option>BUSINESS CARDS</option>
+                          <option>CARBONLESS FORMS</option>
+                          <option>DOOR HANGERS</option>
+                          <option>FLYERS</option>
+                          <option>GIFT CERTIFICATES</option>
+                          <option>GREETING CARDS</option>
+                          <option>LABELS</option>
+                          <option>LETTERHEAD</option>
+                          <option>MAGNETS</option>
+                          <option>MENUS</option>
+                          <option>POSTCARDS</option>
+                          <option>BULK POSTERS</option>
+                          <option>PRESENTATION FOLDERS</option>
+                          <option>RACK CARDS</option>
+                          <option>YARD SIGNS</option>
+                          <option>TABLE TENTS</option>
+                          <option>POUCHES</option>
+                          <option>CUSTOM BOXES</option>
+                          <option>NOTE PADS</option>
+                          <option>ENVELOPES</option>
+                          <option>CATALOGS</option>
+                          <option>BOOKLETS</option>
+                          <option>OTHER</option>
+                        </select></label>
+                        <label class="compact">Quantity<input type="number" id="salePrintQuantity" step="1" placeholder="Qty" /></label>
+                        <label class="compact">Size<input type="text" id="salePrintSize" placeholder="Example: 8.5x11" /></label>
+                      </div>
+
+                      <div class="compact-row">
+                        <label class="compact">Finish<select id="salePrintFinish"><option value="">Select finish</option><option>Uncoated</option><option>Matte</option><option>Gloss</option><option value="Gloss High UV">High Gloss UV</option><option>Other</option></select></label>
+                        <label class="compact">Thickness<select id="salePrintThickness"><option value="">Select thickness</option><option>70lb Uncoated</option><option>80lb</option><option>100lb</option><option>10pt</option><option>14pt</option><option>16pt</option><option>17pt</option><option>Other</option></select></label>
+                      </div>
+
+                      <div class="compact-row">
+                        <label class="full">Fold<input type="text" id="salePrintFold" placeholder="e.g. Half Fold, Tri-Fold, Z Fold" /></label>
+                      </div>
+
+                      <label id="salePrintOtherFinishContainer" class="hidden">Other Finish<input type="text" id="salePrintOtherFinish" placeholder="Specify finish" /></label>
+                      <label id="salePrintOtherThicknessContainer" class="hidden">Other Thickness<input type="text" id="salePrintOtherThickness" placeholder="Specify thickness" /></label>
+
+                      <label id="salePrintDescriptionLabel">Project Description<textarea id="salePrintDescription" rows="3" placeholder="Describe the print project (Examples: business cards, brochures, banners, flyers, postcards, signs, etc.)"></textarea></label>
+                      <label>Mailing Required<select id="needsMailing"><option>No</option><option>Yes</option></select></label>
+                    </div>
+
+
+                    <div class="pricing-section">
+                      <h4 class="eyebrow">Pricing</h4>
+                      <div class="pricing-card">
+                        <div class="pricing-row"><span>Project Price</span><input type="number" id="salePrintProjectPrice" step="1" placeholder="0" /></div>
+                        <div class="pricing-row small"><span>Discount</span><div class="discount-controls"><select id="salePrintDiscountType"><option value="None">None</option><option value="Dollar Amount">Dollar Amount</option><option value="Percentage">Percentage</option></select><input type="number" id="salePrintDiscountValue" min="0" step="0.01" placeholder="0" /></div></div>
+                        <div class="pricing-row total"><strong>Total</strong><input type="text" id="salePrintTotalInvestment" readonly placeholder="$0.00" /></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="mailerDesignOptions" class="optional-design hidden">
+                    <div id="designFieldset" class="design-fieldset">
+                      <label class="checkbox-label"><input type="checkbox" id="designRequired" /> <span class="design-label" data-mailer="Design Required (+$30)" data-print="Design Required">Design Required (+$30)</span></label>
+                      <label class="checkbox-label"><input type="checkbox" id="designChangeRequired" /> <span class="design-label" data-mailer="Design Change (+$15)" data-print="Design Change">Design Change (+$15)</span></label>
+                      <div id="printDesignFeeContainer" class="hidden">
+                        <label class="compact">Design Fee<input type="number" id="salePrintDesignFee" step="0.01" placeholder="0.00" /></label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="notification-section">
+                  <p class="section-label">Notify Departments</p>
+                  <p class="section-help">Recommended recipients have been selected automatically based on sale type. Adjust as needed.</p>
+                  <div class="notification-toggle-grid">
+                    <label class="checkbox-label"><input type="checkbox" id="notifyManagement" /> Management</label>
+                    <label class="checkbox-label"><input type="checkbox" id="notifyPrintTeam" /> Print Team</label>
+                    <label class="checkbox-label"><input type="checkbox" id="notifyDesigners" /> Designers</label>
+                    <label class="checkbox-label"><input type="checkbox" id="notifyDigitalTeam" /> Digital Team</label>
+                    <label class="checkbox-label"><input type="checkbox" id="notifySocialMediaTeam" /> Social Media Team</label>
+                    <label class="checkbox-label"><input type="checkbox" id="notifyGeofencing" /> Geofencing</label>
+                  </div>
+                </div>
+
+                <label>Date<input type="date" id="saleDate" /></label>
+                <!-- Representative is assigned automatically from the authenticated user context. -->
+                <!-- Amount removed from UI (kept hidden input above for internal wiring) -->
+                <!-- design fieldset moved into Mailer optional section to reduce prominence -->
+                <label id="mailingRequiredContainer" class="hidden">Mailing Required<select id="needsMailing"><option>No</option><option>Yes</option></select></label>
+                <label>Payment Method<select id="salePaymentMethod"><option value="">Select payment method</option><option value="ACH">ACH</option><option value="Credit Card">Credit Card</option><option value="Debit Card">Debit Card</option><option value="Check">Check</option><option value="Cash">Cash</option><option value="Invoice">Invoice</option><option value="Other">Other</option></select></label>
+                <label id="otherPaymentMethodContainer" class="hidden">Other Payment Method<input type="text" id="saleOtherPaymentMethod" placeholder="Specify payment method" /></label>
+                <label>Notes<textarea id="saleNotes" rows="3"></textarea></label>
+                <div class="form-actions">
+                  <button type="submit" class="primary-btn">Save Sale</button>
+                  <button type="button" id="clearSaleForm" class="secondary-btn">Clear</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="data-card">
+              <p class="eyebrow">Sales history</p>
+              <h3>Recent sales</h3>
+              <div id="salesTableWrap" class="table-wrap"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="saleConfirmation" class="content-panel hidden">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Sale Confirmation</p>
+              <h2>Advertising agreement ready</h2>
+            </div>
+            <p class="panel-help">Review the recorded sale, then send the agreement or download the PDF.</p>
+          </div>
+
+          <div class="card-grid one-column">
+            <section class="data-card">
+              <p class="eyebrow">Sale summary</p>
+              <div class="confirmation-grid">
+                <div><strong>Business Name</strong><p id="saleConfirmationBusinessName"></p></div>
+                <div><strong>Contact Person</strong><p id="saleConfirmationContactPerson"></p></div>
+                <div><strong>Product(s) Sold</strong><p id="saleConfirmationProducts"></p></div>
+                <div><strong>Total</strong><p id="saleConfirmationAmount"></p></div>
+                <div><strong>Date Created</strong><p id="saleConfirmationDate"></p></div>
+                <div><strong>Sales Rep</strong><p id="saleConfirmationSalesRep"></p></div>
+                <div class="confirmation-full"><strong>Notes</strong><p id="saleConfirmationNotes"></p></div>
+              </div>
+            </section>
+
+              <section class="data-card">
+                <p class="eyebrow">Customer Authorization</p>
+                <h3>Collect handwritten signature</h3>
+                <div class="signature-collect">
+                  <canvas id="signaturePad" width="600" height="200" class="signature-canvas" aria-label="Signature pad"></canvas>
+                  <div class="signature-controls">
+                    <div class="form-actions">
+                      <button type="button" id="clearSignatureBtn" class="secondary-btn">Clear Signature</button>
+                      <button type="button" id="saveSignatureBtn" class="primary-btn">Save Signature</button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+            <section class="data-card">
+              <p class="eyebrow">Agreement actions</p>
+              <h3>Next steps</h3>
+              <div class="button-row">
+                <button id="sendAgreementPackageBtn" class="primary-btn">Send Agreement Package</button>
+                <button id="downloadAgreementBtn" class="secondary-btn">Download Agreement PDF</button>
+                <button id="returnToCRMBtn" class="secondary-btn">Return to CRM</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="saleConfirmationPackage" class="content-panel hidden">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Agreement Package</p>
+              <h2>✓ Agreement Package Ready</h2>
+            </div>
+            <p class="panel-help">Your agreement package has been prepared. Review the status below.</p>
+          </div>
+
+          <div class="card-grid one-column">
+            <section class="data-card agreement-package-success">
+              <div class="agreement-package-status">
+                <div class="status-item success">
+                  <span class="status-icon">✓</span>
+                  <div class="status-content">
+                    <strong>PDF Generated</strong>
+                    <p id="packagePdfFileName">AVIDSphere_[BusinessName]_AdvertisingAgreement.pdf</p>
+                  </div>
+                </div>
+                <div class="status-item success">
+                  <span class="status-icon">✓</span>
+                  <div class="status-content">
+                    <strong>Email Draft Opened</strong>
+                    <p>Your email client is ready with the agreement details pre-filled.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="agreement-package-reminder">
+                <p class="reminder-label">📎 Important: Manual Attachment Required</p>
+                <div class="reminder-box">
+                  <p><strong>Please attach the downloaded PDF to the email:</strong></p>
+                  <p id="packagePdfAttachmentName" class="attachment-name">AVIDSphere_[BusinessName]_AdvertisingAgreement.pdf</p>
+                  <p class="reminder-note">The PDF is saved in your Downloads folder. Look for the file name above.</p>
+                </div>
+              </div>
+
+              <div class="agreement-package-next">
+                <p class="next-label">Next Step</p>
+                <ul class="next-steps-list">
+                  <li>Personalize the email message (if desired)</li>
+                  <li>Attach the downloaded PDF file</li>
+                  <li>Send the email to the customer</li>
+                </ul>
+              </div>
+
+              <div class="button-row">
+                <button id="returnToCRMAfterPackageBtn" class="secondary-btn">Return to CRM</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="reminders" class="content-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Calendar</p>
+              <h2>Reminders & schedule</h2>
+            </div>
+            <p class="panel-help">Create and view reminders tied to customers and dates.</p>
+          </div>
+
+          <div class="card-grid two-column">
+            <section class="data-card">
+              <p class="eyebrow">Add reminder</p>
+              <h3>Reminder form</h3>
+              <form id="reminderForm" class="crm-form">
+                <label>Customer<select id="reminderCustomer"></select></label>
+                <label>Title<input type="text" id="reminderTitle" required /></label>
+                <label>Date<input type="date" id="reminderDate" required /></label>
+                <!-- Assigned To is populated automatically from the current user context. -->
+                <label>Notes<textarea id="reminderNotes" rows="3"></textarea></label>
+                <div class="form-actions">
+                  <button type="submit" class="primary-btn">Save Reminder</button>
+                  <button type="button" id="clearReminderForm" class="secondary-btn">Clear</button>
+                </div>
+              </form>
+              <div id="reminderListContainer" class="reminder-list-section">
+                <div id="reminderList" class="reminder-list"></div>
+              </div>
+            </section>
+
+            <section class="data-card">
+              <p class="eyebrow">Calendar</p>
+              <h3>Month view</h3>
+              <div class="calendar-controls compact-controls">
+                <div class="month-controls">
+                  <label>Month
+                    <div class="controls-row">
+                      <button id="prevMonth" class="secondary-btn compact-nav" aria-label="Previous month">‹</button>
+                      <select id="monthSelect" class="compact-select"></select>
+                      <button id="nextMonth" class="secondary-btn compact-nav" aria-label="Next month">›</button>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="year-controls">
+                  <label>Year
+                    <div class="controls-row">
+                      <button id="prevYear" class="secondary-btn compact-nav" aria-label="Previous year">‹</button>
+                      <select id="yearSelect" class="compact-select"></select>
+                      <button id="nextYear" class="secondary-btn compact-nav" aria-label="Next year">›</button>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div id="calendarGrid" class="calendar-grid"></div>
+              <div class="selected-reminders">
+                <div class="selected-date-summary">
+                  <h3 id="selectedDateLabel">Select a date</h3>
+                  <div id="selectedDateReminders"></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+
+        <section id="management" class="content-panel">
+          <div>
+            <div id="managementCustomerTable"></div>
+          </div>
+          <div class="data-card">
+            <p class="eyebrow">Management Activity</p>
+            <h3>Recent team updates</h3>
+            <div id="managementActivityFeed" class="notification-feed"></div>
+          </div>
+        </section>
+
+        <section id="notifications" class="content-panel">
+          <div class="panel-header"><div><p class="eyebrow">Notifications</p><h2>Notification management</h2></div><p class="panel-help">Delete single notifications, clear the feed, or mark alerts as read.</p></div>
+          <div class="data-card">
+            <div class="notification-toolbar inbox-toolbar">
+              <div class="filter-row">
+                <label>Filter<select id="notificationFilterType">
+                  <option value="All">All</option>
+                  <option value="Unread">Unread</option>
+                  <option value="Management">Management</option>
+                  <option value="Sales">Sales</option>
+                  <option value="Print">Print</option>
+                  <option value="Design">Design</option>
+                  <option value="Digital">Digital</option>
+                  <option value="Social">Social</option>
+                  <option value="Geofencing">Geofencing</option>
+                </select></label>
+                <label>Sort<select id="notificationSortType">
+                  <option value="Newest">Newest first</option>
+                  <option value="Oldest">Oldest first</option>
+                  <option value="Priority">Priority first</option>
+                </select></label>
+              </div>
+              <div class="form-actions"><button type="button" id="deleteSelectedNotifications" class="secondary-btn">Delete Selected</button><button type="button" id="clearAllNotifications" class="secondary-btn">Clear All</button></div>
+            </div>
+            <div id="notificationFeed" class="notification-feed"></div>
+          </div>
+        </section>
+
+      </section>
+    </main>
+
+    <!-- Developer Panel -->
+    <div class="developer-panel">
+      <button id="devPanelToggle" class="dev-panel-toggle">
+        <span class="dev-panel-icon">⚙️</span> Developer Tools
+      </button>
+      <div id="devPanelContent" class="dev-panel-content">
+        <div class="dev-panel-header">
+          <p class="eyebrow">Developer Tools</p>
+          <h3>Testing & Configuration</h3>
+        </div>
+        <div class="dev-panel-buttons">
+          <button id="sendTestEmail" class="dev-tool-btn">Send Test Email</button>
+          <button id="resetDemoData" class="dev-tool-btn danger">Reset Demo Data</button>
+          <div class="dev-tool-warning">
+            ⚠️ Development tool. This may overwrite or reset local demo data.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+    <div id="confirmOverlay" class="confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+      <div class="confirm-panel">
+        <p class="eyebrow" id="confirmTitle">Confirm action</p>
+        <p class="confirm-message" id="confirmMessage"></p>
+        <div class="confirm-actions">
+          <button type="button" class="secondary-btn confirm-cancel-btn">Cancel</button>
+          <button type="button" class="primary-btn confirm-confirm-btn">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+  <script src="Assets/logo-base64.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

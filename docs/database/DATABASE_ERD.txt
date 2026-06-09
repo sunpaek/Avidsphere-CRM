@@ -1,0 +1,592 @@
+```
+╔════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                     AVIDSPHERE CRM - ENTITY RELATIONSHIP DIAGRAM (ERD)                                     ║
+╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+1. AUTHENTICATION & AUTHORIZATION LAYER
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────┐
+│       USERS          │
+├──────────────────────┤
+│ id (PK)              │
+│ email ⭐ UNIQUE      │
+│ password_hash        │
+│ first_name           │
+│ last_name            │
+│ is_active            │
+│ is_deleted (soft)    │
+│ last_login           │
+│ created_at           │
+│ updated_at           │
+└──────────────────────┘
+     ▲    ▲    ▲
+     │    │    │
+    1:N  │    │
+     │   │    │
+┌────────────────────────┬──────────────────────┬────────────────────────┐
+│  USER_ROLES (N:M)      │  USER_SESSIONS       │  DEVICE_REGISTRATIONS  │
+├────────────────────────┤  (1:N)               │  (1:N)                 │
+│ id                     │ ├──────────────────┐ │ ├──────────────────────┤
+│ user_id (FK)           │ │ id               │ │ │ id                   │
+│ role_id (FK)           │ │ user_id (FK)     │ │ │ user_id (FK)         │
+│ assigned_at            │ │ device_id        │ │ │ device_id ⭐ UNIQUE  │
+│ assigned_by (FK→User)  │ │ device_type      │ │ │ device_name          │
+└────────────────────────┤ │ session_token    │ │ │ device_type          │
+                         │ │ is_active        │ │ │ os_type              │
+                         │ │ expires_at       │ │ │ push_token           │
+                         │ │ created_at       │ │ │ is_trusted           │
+                         │ │ last_activity    │ │ │ last_seen            │
+                         │ └──────────────────┘ │ │ created_at           │
+                         └──────────────────────┘ │ updated_at           │
+                                                  └──────────────────────┘
+
+                            ↓
+┌──────────────────────┐   ┌──────────────────────┐
+│       ROLES          │   │    PERMISSIONS       │
+├──────────────────────┤   ├──────────────────────┤
+│ id (PK)              │   │ id (PK)              │
+│ name ⭐ UNIQUE       │   │ name ⭐ UNIQUE       │
+│ description          │   │ description          │
+│ is_active            │   │ resource             │
+│ created_at           │   │ action               │
+│ updated_at           │   │ created_at           │
+└──────────────────────┘   └──────────────────────┘
+     ▲                           ▲
+     │                           │
+    1:N                         1:N
+     │                           │
+┌──────────────────────────────┴──────────────────────┐
+│        ROLE_PERMISSIONS (N:M)                       │
+├─────────────────────────────────────────────────────┤
+│ id                                                  │
+│ role_id (FK→Roles)                                 │
+│ permission_id (FK→Permissions)                     │
+│ created_at                                         │
+└─────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+2. CORE ENTITIES LAYER (Companies, Contacts, Social Accounts)
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────┐
+│       COMPANIES                  │
+│    (Master Customer Record)      │
+├──────────────────────────────────┤
+│ id (PK)                          │
+│ company_name                     │
+│ business_type                    │
+│ industry                         │
+│ email_address ⭐                 │
+│ phone_number                     │
+│ website_url                      │
+│ business_address                 │
+│ city, state, zip, country        │
+│ quickbooks_id ⭐ UNIQUE          │
+│ stripe_customer_id ⭐ UNIQUE     │
+│ is_active                        │
+│ is_deleted (soft delete)         │
+│ notes                            │
+│ created_at                       │
+│ updated_at                       │
+│ created_by (FK→Users)            │
+│ updated_by (FK→Users)            │
+└──────────────────────────────────┘
+     ▲    ▲    ▲    ▲    ▲
+     │    │    │    │    │
+    1:N  │   1:N   │    │
+     │   │    │   │    │
+┌──────────────────────────────┬──────────────────────┬──────────────────────────┐
+│ COMPANY_CONTACTS             │ COMPANY_SOCIAL_      │                          │
+│ (Multiple contacts/person)   │ ACCOUNTS             │                          │
+├──────────────────────────────┤ (Multi-platform)     │                          │
+│ id                           │ ├──────────────────┐ │                          │
+│ company_id (FK)              │ │ id               │ │                          │
+│ contact_name                 │ │ company_id (FK)  │ │                          │
+│ title                        │ │ platform         │ │                          │
+│ email_address                │ │ username         │ │                          │
+│ phone_number                 │ │ url              │ │                          │
+│ is_primary_contact           │ │ follower_count   │ │                          │
+│ is_deleted                   │ │ is_primary       │ │                          │
+│ created_at                   │ │ created_at       │ │                          │
+│ updated_at                   │ │ updated_at       │ │                          │
+└──────────────────────────────┘ └──────────────────┘ │                          │
+                                                       │                          │
+                                                       │  OPPORTUNITIES (1:N)    │
+                                                       │  & SALES (1:N)         │
+                                                       │  See Section 3 →        │
+                                                       │                          │
+                                                       │  INVOICES (1:N)         │
+                                                       │  See Section 5 →        │
+                                                       │                          │
+                                                       │  AGREEMENTS (1:N)       │
+                                                       │  See Section 7 →        │
+                                                       │                          │
+                                                       │  REMINDERS (1:N)        │
+                                                       │  See Section 8 →        │
+                                                       └──────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+3. SALES & OPPORTUNITIES LAYER
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────┐
+│   OPPORTUNITIES          │
+│   (Sales Pipeline)       │
+├──────────────────────────┤
+│ id (PK)                  │
+│ company_id (FK)          │
+│ sales_rep_id (FK→Users)  │
+│ opportunity_name         │
+│ opportunity_type         │
+│ status (Prospect|...)    │
+│ value $$$                │
+│ expected_close_date      │
+│ probability_percent      │
+│ created_at               │
+│ updated_at               │
+│ created_by (FK→Users)    │
+└──────────────────────────┘
+        ▼
+    Converts to
+        ▼
+┌──────────────────────────────────────────────┐
+│              SALES (Main Record)             │
+│        (One per transaction)                 │
+├──────────────────────────────────────────────┤
+│ id (PK)                                      │
+│ opportunity_id (FK) [Optional]               │
+│ company_id (FK)                              │
+│ sales_rep_id (FK→Users)                      │
+│ sale_date                                    │
+│ sale_type (Mailer|Digital|Print|...)        │
+│ status (Draft|Submitted|Approved|Active|...) │
+│ description                                  │
+│ notes                                        │
+│ created_at                                   │
+│ updated_at                                   │
+│ created_by (FK→Users)                        │
+│ updated_by (FK→Users)                        │
+└──────────────────────────────────────────────┘
+  ▼        ▼        ▼        ▼        ▼
+  │        │        │        │        │
+ 1:1      1:1      1:1      1:1      1:1
+  │        │        │        │        │
+
+┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐
+│ SALE_MAILER_DETAILS  │  │ SALE_DIGITAL_DETAILS │  │ SALE_PRINT_DETAILS   │
+├──────────────────────┤  ├──────────────────────┤  ├──────────────────────┤
+│ sale_id (FK, UNIQUE) │  │ sale_id (FK, UNIQUE) │  │ sale_id (FK, UNIQUE) │
+│ area_name            │  │ service_type         │  │ print_type           │
+│ month_name           │  │ service_price        │  │ description          │
+│ run_time             │  │ discount_type        │  │ finish_type          │
+│ ad_size              │  │ discount_value       │  │ thickness_type       │
+│ monthly_rate         │  │ total_investment     │  │ fold_type            │
+│ subtotal             │  │ static_ideas         │  │ quantity             │
+│ discount_type        │  │ video_campaign       │  │ size                 │
+│ total_investment     │  │ target_areas         │  │ design_fee           │
+│ needs_mailing        │  │ target_locations     │  │ project_price        │
+│ created_at           │  │ target_age_range     │  │ discount_type        │
+│ updated_at           │  │ target_gender        │  │ total_investment     │
+└──────────────────────┘  │ target_income_range  │  │ created_at           │
+                          │ monthly_spend        │  │ updated_at           │
+   ┌────────────────────────┤ campaign_goal      │  └──────────────────────┘
+   │ SALE_SOCIAL_MEDIA_     │ start_date         │
+   │ DETAILS (1:1)          │ website_url        │      ┌──────────────────────┐
+   │ ├─────────────────────┐│ created_at         │      │ SALE_GEOFENCING_     │
+   │ │ sale_id (FK, UNIQUE)││ updated_at         │      │ DETAILS (1:1)        │
+   │ │ platforms          ││                    │      │ ├──────────────────────┤
+   │ │ username           │└──────────────────────┘      │ │ sale_id (FK, UNIQUE)│
+   │ │ start_date         │                             │ │ target_areas        │
+   │ │ created_at         │      ┌──────────────────────┤ │ target_locations    │
+   │ │ updated_at         │      │ SALE_WEBSITE_DETAILS │ │ campaign_type       │
+   │ └─────────────────────┘      │ (1:1)                │ │ monthly_spend       │
+   │                              │ ├──────────────────┤ │ target_age_range    │
+   │                              │ │ sale_id (FK)     │ │ target_gender       │
+   │                              │ │ website_option   │ │ target_income_range │
+   │                              │ │ website_url      │ │ start_date          │
+   │                              │ │ primary_goal     │ │ created_at          │
+   │                              │ │ created_at       │ │ updated_at          │
+   │                              │ └──────────────────┘ └──────────────────────┘
+   │                              
+   │         ┌──────────────────────┐
+   │         │ SALE_PAID_ADS_       │
+   │         │ DETAILS (1:1)        │
+   │         │ ├──────────────────┐ │
+   │         │ │ sale_id (FK)     │ │
+   │         │ │ platforms        │ │
+   │         │ │ other_platform   │ │
+   │         │ │ created_at       │ │
+   │         │ └──────────────────┘ │
+   │         └──────────────────────┘
+   │
+   └─ All sales also include:
+       └─ SALE_SERVICES (1:N)
+           ├─ service_type (Design|Design Changes|Mailing)
+           ├─ description
+           ├─ amount
+           └─ is_required
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+4. INVOICING & PAYMENTS LAYER
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+                    ┌────────────────────────┐
+                    │    INVOICES            │
+                    ├────────────────────────┤
+                    │ id (PK)                │
+                    │ invoice_number ⭐      │
+                    │ company_id (FK)        │
+                    │ sale_id (FK, opt.)     │
+                    │ invoice_date           │
+                    │ due_date               │
+                    │ status (Paid|Overdue|..) │
+                    │ subtotal               │
+                    │ tax_amount             │
+                    │ tax_percent            │
+                    │ discount_amount        │
+                    │ total_amount           │
+                    │ amount_paid            │
+                    │ amount_remaining       │
+                    │ quickbooks_id ⭐       │
+                    │ stripe_invoice_id      │
+                    │ notes                  │
+                    │ created_at             │
+                    │ updated_at             │
+                    │ created_by (FK→Users)  │
+                    │ updated_by (FK→Users)  │
+                    └────────────────────────┘
+                         ▼ (1:N)
+            ┌────────────────────────────────┐
+            │  INVOICE_LINE_ITEMS            │
+            ├────────────────────────────────┤
+            │ id                             │
+            │ invoice_id (FK)                │
+            │ description                    │
+            │ quantity                       │
+            │ unit_price                     │
+            │ line_total                     │
+            │ account_code (QB mapping)      │
+            │ created_at                     │
+            └────────────────────────────────┘
+
+                    ▼ (1:N)
+            ┌────────────────────────────────┐
+            │      PAYMENTS                  │
+            ├────────────────────────────────┤
+            │ id (PK)                        │
+            │ payment_number ⭐              │
+            │ invoice_id (FK)                │
+            │ company_id (FK)                │
+            │ payment_date                   │
+            │ amount                         │
+            │ payment_method                 │
+            │ (Credit Card|Bank|ACH|Check)  │
+            │ payment_status                 │
+            │ (Pending|Processing|Complete) │
+            │ reference_number               │
+            │ notes                          │
+            │ quickbooks_id ⭐               │
+            │ stripe_payment_id              │
+            │ created_at                     │
+            │ updated_at                     │
+            │ created_by (FK→Users)          │
+            │ processed_by (FK→Users, opt.)  │
+            └────────────────────────────────┘
+                    ▼
+            ┌────────────────────────────────┐
+            │QUICKBOOKS_SYNC_LOGS            │
+            │  (See Section 9)               │
+            └────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+5. AGREEMENTS & E-SIGNATURE LAYER
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+                    ┌────────────────────────┐
+                    │    AGREEMENTS          │
+                    ├────────────────────────┤
+                    │ id (PK)                │
+                    │ agreement_number ⭐    │
+                    │ company_id (FK)        │
+                    │ sale_id (FK, opt.)     │
+                    │ agreement_type         │
+                    │ status (Draft|Sent|..) │
+                    │ document_version       │
+                    │ created_at             │
+                    │ updated_at             │
+                    │ created_by (FK→Users)  │
+                    │ updated_by (FK→Users)  │
+                    │ sent_date              │
+                    │ sent_by (FK→Users)     │
+                    └────────────────────────┘
+         ▼ (1:N)                ▼ (1:N)
+┌──────────────────────────┐  ┌──────────────────────────┐
+│AGREEMENT_SIGNATORIES     │  │AGREEMENT_DOCUMENTS       │
+│(Who needs to sign)       │  │(Versioned PDFs)          │
+├──────────────────────────┤  ├──────────────────────────┤
+│ id (PK)                  │  │ id (PK)                  │
+│ agreement_id (FK)        │  │ agreement_id (FK)        │
+│ signer_name              │  │ document_version         │
+│ signer_title             │  │ file_name                │
+│ signer_email             │  │ file_path (local/S3)     │
+│ signer_phone             │  │ file_size_bytes          │
+│ signature_status         │  │ mime_type                │
+│ (Pending|Signed|...)     │  │ content_hash (SHA256)    │
+│ signature_date           │  │ storage_type             │
+│ signature_ip_address     │  │ is_current_version       │
+│ created_at               │  │ created_at               │
+│ updated_at               │  │ created_by (FK→Users)    │
+└──────────────────────────┘  └──────────────────────────┘
+         ▼ (1:1)
+    ┌────────────────────────┐
+    │    SIGNATURES          │
+    │  (Captured Data)       │
+    ├────────────────────────┤
+    │ id (PK)                │
+    │ signatory_id (FK, UNIQ)│
+    │ signature_data_type    │
+    │ (base64|url|file_path) │
+    │ signature_content      │
+    │ (Base64 PNG data)      │
+    │ signature_url          │
+    │ (S3/cloud URL)         │
+    │ signature_timestamp    │
+    │ device_type (iPad|...) │
+    │ platform (iOS|...)     │
+    │ created_at             │
+    └────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+6. REMINDERS & NOTIFICATIONS LAYER
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+            ┌─────────────────────────────┐
+            │       REMINDERS             │
+            │    (Calendar & Tasks)       │
+            ├─────────────────────────────┤
+            │ id (PK)                     │
+            │ company_id (FK, opt.)       │
+            │ title                       │
+            │ description                 │
+            │ reminder_type               │
+            │ (Follow-up|Call|Email|...)  │
+            │ reminder_date               │
+            │ reminder_time               │
+            │ assigned_to (FK→Users)      │
+            │ created_by (FK→Users)       │
+            │ status (Pending|Completed)  │
+            │ priority (Low|Normal|High)  │
+            │ related_to_sale_id (FK)     │
+            │ related_to_invoice_id (FK)  │
+            │ related_to_agreement_id (FK)│
+            │ is_completed                │
+            │ completed_at                │
+            │ created_at                  │
+            │ updated_at                  │
+            └─────────────────────────────┘
+                  ▼ (1:N opt.)
+            ┌─────────────────────────────┐
+            │ RECURRING_REMINDERS         │
+            │ (Recurring pattern)         │
+            ├─────────────────────────────┤
+            │ id                          │
+            │ base_reminder_id (FK)       │
+            │ recurrence_pattern          │
+            │ (Daily|Weekly|Monthly|...)  │
+            │ recurrence_frequency        │
+            │ recurrence_end_date         │
+            │ is_active                   │
+            │ created_at                  │
+            └─────────────────────────────┘
+
+            ┌─────────────────────────────┐
+            │    NOTIFICATIONS            │
+            │   (System messages)         │
+            ├─────────────────────────────┤
+            │ id (PK)                     │
+            │ recipient_id (FK→Users)     │
+            │ notification_type           │
+            │ (Sale|Invoice|Payment|...)  │
+            │ title                       │
+            │ message                     │
+            │ priority                    │
+            │ is_read                     │
+            │ is_archived                 │
+            │ action_url                  │
+            │ related_sale_id (FK, opt.)  │
+            │ related_company_id (FK)     │
+            │ related_invoice_id (FK)     │
+            │ related_agreement_id (FK)   │
+            │ created_at                  │
+            │ read_at                     │
+            └─────────────────────────────┘
+                  ▼ (1:1)
+   ┌────────────────────────────────────┐
+   │ NOTIFICATION_PREFERENCES           │
+   │ (User settings)                    │
+   ├────────────────────────────────────┤
+   │ user_id (FK, UNIQUE)               │
+   │ email_notifications                │
+   │ in_app_notifications               │
+   │ push_notifications                 │
+   │ digest_frequency                   │
+   │ preferred_notification_time        │
+   │ notification_categories (JSONB)    │
+   │ created_at                         │
+   │ updated_at                         │
+   └────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+7. AUDIT & ACTIVITY LOGGING LAYER
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+        ┌────────────────────────────┐
+        │    ACTIVITY_LOGS           │
+        │  (High volume: 90 day TTL) │
+        ├────────────────────────────┤
+        │ id (PK)                    │
+        │ user_id (FK)               │
+        │ entity_type                │
+        │ entity_id                  │
+        │ action (Create|Update|...) │
+        │ action_details (JSONB)     │
+        │ changes_from (JSONB)       │
+        │ changes_to (JSONB)         │
+        │ ip_address                 │
+        │ user_agent                 │
+        │ device_type                │
+        │ created_at                 │
+        │ [Auto-purge after 90 days] │
+        └────────────────────────────┘
+
+        ┌────────────────────────────┐
+        │    AUDIT_LOGS              │
+        │  (Critical only: 7yr TTL)  │
+        ├────────────────────────────┤
+        │ id (PK)                    │
+        │ user_id (FK)               │
+        │ action                     │
+        │ resource_type              │
+        │ resource_id                │
+        │ old_values (JSONB)         │
+        │ new_values (JSONB)         │
+        │ reason                     │
+        │ ip_address                 │
+        │ created_at                 │
+        │ [7-year retention]         │
+        └────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+8. QUICKBOOKS INTEGRATION LAYER
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────────┐
+│ QUICKBOOKS_SYNC_LOGS                 │
+│ (Integration queue & history)        │
+├──────────────────────────────────────┤
+│ id (PK)                              │
+│ sync_type                            │
+│ (Customer|Invoice|Payment|Bill)      │
+│ entity_type                          │
+│ entity_id                            │
+│ quickbooks_id                        │
+│ sync_status                          │
+│ (Pending|Synced|Failed|Partial)      │
+│ sync_direction                       │
+│ (To QB|From QB|Bidirectional)        │
+│ error_message                        │
+│ retry_count                          │
+│ last_retry_at                        │
+│ synced_at                            │
+│ created_at                           │
+│ updated_at                           │
+└──────────────────────────────────────┘
+          ▼ (1:1)
+┌──────────────────────────────────────┐
+│ QUICKBOOKS_CONFIG                    │
+│ (OAuth tokens & settings)            │
+├──────────────────────────────────────┤
+│ id (PK)                              │
+│ realm_id                             │
+│ access_token (encrypted)             │
+│ refresh_token (encrypted)            │
+│ token_expiry                         │
+│ is_active                            │
+│ last_sync_at                         │
+│ sync_enabled_for (JSONB)             │
+│ created_at                           │
+│ updated_at                           │
+└──────────────────────────────────────┘
+
+SYNC FLOW:
+AVIDSPHERE         QB API          QB Online
+  Invoice  ──POST──→  /invoices  ──→  QB System
+   (with company)     (create)          (stores)
+        ▼
+  Update QB_ID        QB sends
+  on success      ←─ webhook on
+                    payment
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+KEY INDEXES FOR PERFORMANCE
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+INDEXED COLUMNS (Primary Lookup Paths):
+
+Auth Layer:
+  ⭐ users.email (case-insensitive)
+  ⭐ user_sessions.token
+  ⭐ user_sessions(is_active, expires_at)
+
+Company Data:
+  ⭐ companies.email_address
+  ⭐ companies.quickbooks_id
+  ⭐ company_contacts(company_id)
+
+Sales:
+  ⭐ sales(company_id, status)
+  ⭐ sales(sales_rep_id, sale_date DESC)
+  ⭐ opportunities(status)
+
+Financial:
+  ⭐ invoices(status, due_date)
+  ⭐ invoices(company_id, created_at DESC)
+  ⭐ payments(invoice_id, payment_date DESC)
+
+Activity:
+  ⭐ activity_logs(user_id, created_at DESC)
+  ⭐ audit_logs(created_at DESC)
+
+Notifications:
+  ⭐ notifications(recipient_id, created_at DESC)
+  ⭐ reminders(assigned_to, reminder_date)
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+LEGEND
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+(PK)        = Primary Key (UUID)
+(FK)        = Foreign Key reference
+(1:N)       = One-to-Many relationship
+(N:M)       = Many-to-Many relationship
+(1:1)       = One-to-One relationship
+⭐ UNIQUE   = Unique constraint (no duplicates)
+(JSONB)     = JSON data type for flexible attributes
+opt.        = Optional field (nullable)
+soft delete = Record marked with is_deleted flag (not physically removed)
+TTL         = Time-To-Live (auto-purge after period)
+
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+```
