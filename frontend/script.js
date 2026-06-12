@@ -833,6 +833,12 @@ function buildAgreementHtml(sale, customer) {
       { label: "Subtotal", value: formatCurrency(sale.productDetails?.subtotal || 0) },
       { label: "Discount", value: sale.productDetails?.discountType === "Percentage" ? `${sale.productDetails?.discountValue || 0}%` : sale.productDetails?.discountType === "Dollar Amount" ? formatCurrency(sale.productDetails?.discountValue || 0) : "None" }
     );
+    // Show design fees when selected for Mailers
+    if (sale.designRequired === 'Yes' && sale.productDetails?.designRequiredFee) rows.push({ label: 'Design Required', value: formatCurrency(sale.productDetails.designRequiredFee) });
+    if (sale.designChangeRequired === 'Yes' && sale.productDetails?.designChangeFee) rows.push({ label: 'Design Change', value: formatCurrency(sale.productDetails.designChangeFee) });
+    rows.push(
+      { label: "", value: "" }
+    );
   }
   if (sale.saleCategory === "Digital") {
     const details = sale.productDetails || {};
@@ -952,7 +958,7 @@ function buildAgreementHtml(sale, customer) {
   `;
 }
 
-function generateAgreementPdfBase64(sale, customer) {
+function generateAgreementPdf(sale, customer) {
   console.log('[Agreement] PDF generation started', { saleId: sale?.id, customerId: customer?.id, saleCategory: sale?.saleCategory, customerEmail: customer?.emailAddress });
   console.log('[PDF] Starting generation');
   if (!sale) throw new Error('Sale object is required for PDF generation.');
@@ -1101,15 +1107,16 @@ function generateAgreementPdfBase64(sale, customer) {
 
   if (isMail) {
     if (productDetails.monthlyRate) pricingRows.push(['Monthly Rate', formatCurrency(productDetails.monthlyRate)]);
-    if (productDetails.mailerRunTime) pricingRows.push(['Run Time', productDetails.mailerRunTime]);
-    if (productDetails.totalInvestment) pricingRows.push(['Subtotal', formatCurrency(productDetails.totalInvestment)]);
-    if (sale.designRequired === 'Yes' && productDetails.designRequiredFee) pricingRows.push(['Design Required', formatCurrency(productDetails.designRequiredFee)]);
-    if (sale.designChangeRequired === 'Yes' && productDetails.designChangeFee) pricingRows.push(['Design Changes', formatCurrency(productDetails.designChangeFee)]);
+    if (productDetails.mailerRunTime) pricingRows.push(['Run Time', `${productDetails.mailerRunTime} Months`]);
     if (productDetails.discountType && productDetails.discountType !== 'None' && productDetails.discountValue) {
       const discountDisplay = productDetails.discountType === 'Percentage' ? `${productDetails.discountValue}%` : formatCurrency(productDetails.discountValue);
       pricingRows.push(['Discount', `-${discountDisplay}`]);
     }
-    if (productDetails.finalTotal) pricingRows.push(['Total', formatCurrency(productDetails.finalTotal)]);
+    if (sale.designRequired === 'Yes' && productDetails.designRequiredFee) pricingRows.push(['Design Required', formatCurrency(productDetails.designRequiredFee)]);
+    if (sale.designChangeRequired === 'Yes' && productDetails.designChangeFee) pricingRows.push(['Design Changes', formatCurrency(productDetails.designChangeFee)]);
+    // Total should reflect subtotal minus discount plus any design fees
+    const totalVal = productDetails.totalInvestment != null ? productDetails.totalInvestment : (sale.dollarAmount || 0);
+    pricingRows.push(['Total', formatCurrency(totalVal)]);
   } else if (isDigital) {
     const servicePrice = productDetails.servicePrice || sale.dollarAmount;
     pricingRows.push(['Service Price', formatCurrency(servicePrice)]);
@@ -1564,26 +1571,58 @@ function generateAgreementPdfBase64(sale, customer) {
 
   renderFooter();
 
-    const dataUriString = doc.output('datauristring');
-    const base64 = dataUriString.split(',')[1];
-    console.log('[Agreement] PDF generated successfully', { saleId: sale?.id, base64Length: base64.length });
-    return base64;
+    console.log('[Agreement] PDF generated successfully', { saleId: sale?.id, pageCount: doc.getNumberOfPages?.() || 1 });
+    return doc;
   } catch (error) {
     console.error('[Agreement] PDF Generation Error:', error, { saleId: sale?.id, customerId: customer?.id, saleCategory: sale?.saleCategory, customerEmail: customer?.emailAddress });
     throw error;
   }
 }
 
+function generateAgreementPdfBase64(sale, customer) {
+  const doc = generateAgreementPdf(sale, customer);
+  const dataUriString = doc.output('datauristring');
+  const base64 = dataUriString.split(',')[1];
+  return base64;
+}
+
+function isIOSDevice() {
+  const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+  return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function downloadOrPreviewPdf(pdf, filename) {
+  if (!pdf || typeof pdf.save !== 'function') {
+    throw new Error('Invalid PDF document provided.');
+  }
+
+  if (!isIOSDevice()) {
+    pdf.save(filename);
+    return;
+  }
+
+  try {
+    const pdfBlob = pdf.output('blob');
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    const newWindow = window.open(blobUrl, '_blank');
+    if (!newWindow) {
+      showWarning('PDF generated. Please allow popups or try Preview PDF.');
+    }
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl);
+    }, 60000);
+  } catch (error) {
+    console.error('[Agreement] PDF preview error on iOS:', error);
+    showError('Unable to open PDF preview. Please try again.');
+    throw error;
+  }
+}
+
 function downloadAgreementPdf(sale, customer) {
   try {
-    const base64 = generateAgreementPdfBase64(sale, customer);
-    const link = document.createElement("a");
-    link.href = `data:application/pdf;base64,${base64}`;
+    const doc = generateAgreementPdf(sale, customer);
     const fname = makeSafeAgreementFilename(customer?.businessName, sale?.saleDate);
-    link.download = fname;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadOrPreviewPdf(doc, fname);
   } catch (error) {
     showError('Agreement PDF could not be generated. Check console for details.');
     console.error('[Agreement] Download agreement PDF error:', error, { saleId: sale?.id, customerId: customer?.id });
@@ -1702,14 +1741,9 @@ function initiateAgreementPackageWorkflow(sale) {
 
   try {
     console.log('[Agreement] Agreement package creation started', { saleId: sale.id, customerId: customer.id });
-    const pdfBase64 = generateAgreementPdfBase64(sale, customer);
+    const doc = generateAgreementPdf(sale, customer);
     const pdfFileName = makeSafeAgreementFilename(customer?.businessName);
-    const link = document.createElement("a");
-    link.href = `data:application/pdf;base64,${pdfBase64}`;
-    link.download = pdfFileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadOrPreviewPdf(doc, pdfFileName);
     console.log('[Agreement] PDF attachment preparation completed', { saleId: sale.id, pdfFileName });
 
     showAgreementPackageSuccess(sale, customer, pdfFileName);
@@ -2380,14 +2414,16 @@ function collectSaleProductDetails() {
       runTime: details.mailerRunTime,
       discountType: details.discountType,
       discountValue: details.discountValue,
-      designRequired: ui.designRequired?.value || "No",
-      designChangeRequired: ui.designChangeRequired?.value || "No"
+      designRequired: getYesNo(ui.designRequired),
+      designChangeRequired: getYesNo(ui.designChangeRequired)
     });
     details.monthlyRate = pricing.monthlyRate;
     details.subtotal = pricing.subtotal;
     details.designRequiredFee = pricing.designRequiredFee;
     details.designChangeFee = pricing.designChangeFee;
     details.totalInvestment = pricing.totalInvestment;
+    // keep legacy/alternate key used in some rendering paths
+    details.finalTotal = pricing.totalInvestment;
   }
   if (category === "Digital") {
     details.service = ui.saleDigitalService?.value || "";
