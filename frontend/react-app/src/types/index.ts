@@ -58,20 +58,44 @@ export interface Sale {
 
 export interface ProductDetails {
   service?: string
+  servicePrice?: number
+  discountType?: 'None' | 'Dollar Amount' | 'Percentage'
+  discountValue?: number
+  totalInvestment?: number
   mailerArea?: string
   month?: string
   mailerRunTime?: number
   adSize?: string
   printType?: string
-  quantity?: string
+  quantity?: string | number
   size?: string
   finish?: string
+  otherFinish?: string
   thickness?: string
+  otherThickness?: string
   fold?: string
+  projectPrice?: number
+  designFee?: number
   socialPlatforms?: string[]
+  socialUsernames?: string
+  socialStartDate?: string
+  campaignNotes?: string
+  campaignGoal?: string
   paidAdPlatforms?: string[]
+  otherPaidAdPlatform?: string
+  targetAreas?: string
+  targetLocations?: string
+  demographicAge?: string
+  demographicSex?: string
+  demographicIncome?: string
+  campaignType?: string
+  campaignStartDate?: string
   websiteOption?: string
-  monthlyAdSpend?: string
+  websiteUrl?: string
+  landingPageUrl?: string
+  websitePrimaryGoal?: string
+  pages?: string
+  monthlyAdSpend?: number | string
   startDate?: string
   [key: string]: unknown
 }
