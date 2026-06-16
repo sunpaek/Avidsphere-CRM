@@ -17,7 +17,7 @@ import type {
  * Does not write to localStorage; only reads existing keys.
  */
 
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   customers: 'avidSphere.customers',
   sales: 'avidSphere.sales',
   reminders: 'avidSphere.reminders',

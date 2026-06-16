@@ -1,5 +1,6 @@
 import React from 'react'
 import DashboardCard from '@/components/DashboardCard'
+import { seedReactDemoData } from '@/hooks/demoData'
 import { useLocalStorageAdapter, getDashboardStats } from '@/hooks/useLocalStorageAdapter'
 
 function formatCurrency(value: number) {
@@ -91,6 +92,27 @@ export default function Dashboard() {
                 )}
               </div>
             </DashboardCard>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">React Demo Data (Developer Only)</h2>
+                <p className="text-sm text-slate-600">
+                  This button seeds sample CRM data into the React app's localStorage origin only.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  seedReactDemoData()
+                  window.location.reload()
+                }}
+                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+              >
+                Seed React Demo Data
+              </button>
+            </div>
           </div>
         </>
       )}
