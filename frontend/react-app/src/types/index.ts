@@ -45,6 +45,8 @@ export interface Sale {
   designRequired?: 'Yes' | 'No'
   designChangeRequired?: 'Yes' | 'No'
   paymentMethod?: string
+  status?: string
+  saleStatus?: string
   productDetails?: ProductDetails
   notifyManagement?: boolean
   notifyPrintTeam?: boolean
