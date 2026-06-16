@@ -5,7 +5,7 @@ import SaleRecordCard from '@/components/SaleRecordCard'
 import SaleForm from '@/components/SaleForm'
 
 export default function Sales() {
-  const { data, isLoading, error } = useLocalStorageAdapter()
+  const { data, isLoading, error, reload } = useLocalStorageAdapter()
   const [showForm, setShowForm] = useState(false)
 
   const salesWithCustomer = useMemo(() => {
@@ -18,7 +18,6 @@ export default function Sales() {
 
   return (
     <div>
-      <div className="mb-2 text-sm font-semibold text-red-700">UPDATED SALES PAGE TEST</div>
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
@@ -34,7 +33,7 @@ export default function Sales() {
       {showForm && (
         <div className="sale-form-inline">
           <div className="mb-4 text-sm text-green-700">Sale form open</div>
-          <SaleForm customers={data.customers} onClose={() => setShowForm(false)} />
+          <SaleForm customers={data.customers} onClose={() => setShowForm(false)} onSave={() => { reload(); setShowForm(false) }} />
         </div>
       )}
 

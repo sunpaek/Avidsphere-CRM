@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import type { Customer, ProductDetails } from '@/types'
+import type { Customer, ProductDetails, Sale } from '@/types'
+import { saveSale } from '@/hooks/useLocalStorageAdapter'
 import ProductTypeSelector from './ProductTypeSelector'
 import MailerFields from './MailerFields'
 import PrintFields from './PrintFields'
@@ -11,9 +12,10 @@ import AgreementActions from './AgreementActions'
 interface Props {
   customers: Customer[]
   onClose: () => void
+  onSave?: () => void
 }
 
-export default function SaleForm({ customers, onClose }: Props) {
+export default function SaleForm({ customers, onClose, onSave }: Props) {
   const [customerId, setCustomerId] = useState<string | undefined>(customers[0]?.id)
   const [saleCategory, setSaleCategory] = useState<'Mailer' | 'Print' | 'Digital'>('Mailer')
   const [saleDate, setSaleDate] = useState<string>(() => new Date().toISOString().slice(0, 10))
@@ -121,6 +123,68 @@ export default function SaleForm({ customers, onClose }: Props) {
     }
   }, [printPricing, saleCategory, productDetails.totalInvestment])
 
+  function createSale(): Sale {
+    const selectedCustomer = customers.find((customer) => customer.id === customerId)
+    const saleType = saleCategory === 'Mailer'
+      ? 'Mailer Campaign'
+      : saleCategory === 'Print'
+        ? String(productDetails.printType || 'Print Project')
+        : String(productDetails.service || 'Digital Service')
+
+    const saleId = `sale-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`
+    const sale: Sale = {
+      id: saleId,
+      customerId: customerId ?? '',
+      businessName: selectedCustomer?.businessName,
+      saleType,
+      saleCategory,
+      saleDate,
+      salesRepresentative: salesRep,
+      notes: saleNotes || undefined,
+      paymentMethod: paymentMethod || undefined,
+      status: 'Completed',
+      saleStatus: 'Completed',
+      designRequired: String(productDetails.designRequired || 'No') as 'Yes' | 'No',
+      designChangeRequired: String(productDetails.designChangeRequired || 'No') as 'Yes' | 'No',
+      productDetails: {
+        ...productDetails,
+        totalInvestment: saleCategory === 'Digital'
+          ? digitalPricing.totalInvestment
+          : saleCategory === 'Print'
+            ? printPricing.totalInvestment
+            : mailerPricing.total,
+        paymentNotes: paymentNotes || undefined
+      },
+      dollarAmount: saleCategory === 'Digital' ? undefined : saleCategory === 'Print' ? printPricing.totalInvestment : mailerPricing.total,
+      digitalFinalTotal: saleCategory === 'Digital' ? digitalPricing.totalInvestment : undefined
+    }
+
+    return sale
+  }
+
+  function handleSubmit() {
+    if (!validate()) return
+
+    try {
+      const sale = createSale()
+      saveSale(sale)
+      setCustomerId(customers[0]?.id)
+      setSaleCategory('Mailer')
+      setSaleDate(new Date().toISOString().slice(0, 10))
+      setSalesRep('')
+      setSaleNotes('')
+      setProductDetails({})
+      setPaymentMethod('Invoice')
+      setPaymentOtherMethod('')
+      setPaymentNotes('')
+      setErrors({})
+      onSave?.()
+      onClose()
+    } catch (err) {
+      console.error('[SaleForm] Save failed:', err)
+    }
+  }
+
   function validate(): boolean {
     const next: Record<string, string> = {}
     // Common validations
@@ -223,7 +287,7 @@ export default function SaleForm({ customers, onClose }: Props) {
           <button onClick={onClose} aria-label="Close">✕</button>
         </header>
 
-        <form onSubmit={(e) => { e.preventDefault(); if (validate()) { console.log('Validated — Mailer pricing:', mailerPricing) } else { console.log('Validation failed') } }}>
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
           <section className="form-row">
             <div className="form-field">
               <label>Customer</label>
