@@ -84,6 +84,8 @@ export interface Reminder {
   dueDate?: string
   assignedTo?: string
   notes?: string
+  priority?: 'Low' | 'Normal' | 'Medium' | 'High'
+  status?: string
   completed?: boolean
 }
 
