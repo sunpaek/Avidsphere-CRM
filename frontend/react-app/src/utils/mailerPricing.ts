@@ -13,6 +13,7 @@ export type MailerSizeOption = keyof typeof MAILER_PRICES
 
 export interface MailerPricingInput {
   mailerSize: MailerSizeOption
+  runTime?: number
   designRequired?: boolean
   designChangeRequired?: boolean
   discountType?: 'None' | 'Dollar Amount' | 'Percentage'
@@ -22,6 +23,8 @@ export interface MailerPricingInput {
 export interface MailerPricingResult {
   mailerSize: MailerSizeOption
   basePrice: number
+  runTime: number
+  subtotal: number
   discountType: 'None' | 'Dollar Amount' | 'Percentage'
   discountValue: number
   discountAmount: number
@@ -48,14 +51,16 @@ export function calculateMailerTotal(
   input: MailerPricingInput,
 ): MailerPricingResult {
   const basePrice = getMailerBasePrice(input.mailerSize)
+  const runTime = Math.max(Number(input.runTime || 0), 0)
+  const subtotal = basePrice * runTime
   const discountType = input.discountType || 'None'
   const discountValue = Number(input.discountValue || 0)
   let discountAmount = 0
 
   if (discountType === 'Dollar Amount') {
-    discountAmount = Math.min(Math.max(discountValue, 0), basePrice)
+    discountAmount = Math.min(Math.max(discountValue, 0), subtotal)
   } else if (discountType === 'Percentage') {
-    discountAmount = Math.min(Math.max(basePrice * (discountValue / 100), 0), basePrice)
+    discountAmount = Math.min(Math.max(subtotal * (discountValue / 100), 0), subtotal)
   }
 
   const designRequiredFee = input.designRequired ? DESIGN_REQUIRED_FEE : 0
@@ -64,12 +69,14 @@ export function calculateMailerTotal(
   return {
     mailerSize: input.mailerSize,
     basePrice,
+    runTime,
+    subtotal,
     discountType,
     discountValue,
     discountAmount,
     designRequiredFee,
     designChangeFee,
-    total: basePrice - discountAmount + designRequiredFee + designChangeFee,
+    total: Math.max(subtotal - discountAmount + designRequiredFee + designChangeFee, 0),
   }
 }
 
@@ -78,9 +85,10 @@ export function calculateMailerTotal(
  *
  * const result = calculateMailerTotal({
  *   mailerSize: '3x8',
+ *   runTime: 1,
  *   designRequired: true,
  *   designChangeRequired: false,
  * })
  *
- * console.log(result.total) // 550
+ * console.log(result.total) // 685
  */

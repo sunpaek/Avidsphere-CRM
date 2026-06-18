@@ -3,6 +3,9 @@ import type { Reminder } from '@/types'
 type ReminderCardProps = {
   reminder: Reminder
   customerName: string
+  onEdit?: () => void
+  onDelete?: () => void
+  onToggleComplete?: (completed: boolean) => void
 }
 
 function formatReminderDate(value?: string) {
@@ -36,10 +39,10 @@ function getBadgeStyles(type: 'status' | 'priority', value?: string) {
   return 'bg-slate-100 text-slate-800 border-slate-300'
 }
 
-export default function ReminderCard({ reminder, customerName }: ReminderCardProps) {
+export default function ReminderCard({ reminder, customerName, onEdit, onDelete, onToggleComplete }: ReminderCardProps) {
   const dueDateText = formatReminderDate(reminder.dueDate ?? reminder.date)
   const statusLabel = reminder.status ?? (reminder.completed ? 'Completed' : 'Open')
-  const completedLabel = reminder.completed ? 'Completed' : 'Pending'
+  const completed = Boolean(reminder.completed)
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
@@ -67,15 +70,22 @@ export default function ReminderCard({ reminder, customerName }: ReminderCardPro
             <span className="font-semibold text-slate-800">Due date:</span> {dueDateText}
           </div>
           <div>
-            <span className="font-semibold text-slate-800">Assigned to:</span> {reminder.assignedTo ?? 'Unassigned'}
-          </div>
-          <div>
-            <span className="font-semibold text-slate-800">Completed:</span> {completedLabel}
+            <span className="font-semibold text-slate-800">Completed:</span> {completed ? 'Completed' : 'Pending'}
           </div>
           <div>
             <span className="font-semibold text-slate-800">Notes:</span>{' '}
             {reminder.notes ? <span className="text-slate-700">{reminder.notes}</span> : <span className="text-slate-500">None</span>}
           </div>
+        </div>
+
+        <div className="p-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          {onEdit && <button type="button" onClick={onEdit} className="secondary">Edit</button>}
+          {onToggleComplete && (
+            <button type="button" onClick={() => onToggleComplete(!completed)} className="secondary">
+              {completed ? 'Mark Open' : 'Complete'}
+            </button>
+          )}
+          {onDelete && <button type="button" onClick={onDelete} className="danger">Delete</button>}
         </div>
       </div>
     </article>

@@ -8,18 +8,16 @@ interface Props {
 export default function ProductTypeSelector({ value, onChange }: Props) {
   return (
     <div className="product-type-selector">
-      <label>Product Type</label>
-      <div className="product-type-options">
-        <label>
-          <input type="radio" name="productType" checked={value === 'Mailer'} onChange={() => onChange('Mailer')} /> Mailer
-        </label>
-        <label>
-          <input type="radio" name="productType" checked={value === 'Print'} onChange={() => onChange('Print')} /> Print
-        </label>
-        <label>
-          <input type="radio" name="productType" checked={value === 'Digital'} onChange={() => onChange('Digital')} /> Digital
-        </label>
-      </div>
+      <label htmlFor="sale-product-category">Product Category</label>
+      <select
+        id="sale-product-category"
+        value={value}
+        onChange={(event) => onChange(event.target.value as Props['value'])}
+      >
+        <option value="Mailer">Mailers</option>
+        <option value="Digital">Digital</option>
+        <option value="Print">Print</option>
+      </select>
     </div>
   )
 }

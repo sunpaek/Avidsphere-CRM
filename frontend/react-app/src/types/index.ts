@@ -44,7 +44,10 @@ export interface Sale {
   notes?: string
   designRequired?: 'Yes' | 'No'
   designChangeRequired?: 'Yes' | 'No'
+  designChange?: 'Yes' | 'No'
   paymentMethod?: string
+  otherPaymentMethod?: string
+  needsMailing?: string
   status?: string
   saleStatus?: string
   productDetails?: ProductDetails
@@ -54,6 +57,9 @@ export interface Sale {
   notifyDigitalTeam?: boolean
   notifySocialMediaTeam?: boolean
   notifyGeofencing?: boolean
+  // Legacy-compatible signature fields
+  customerSignatureImage?: string // data URL (PNG)
+  customerSignatureDate?: string
 }
 
 export interface ProductDetails {
@@ -79,8 +85,10 @@ export interface ProductDetails {
   socialPlatforms?: string[]
   socialUsernames?: string
   socialStartDate?: string
+  serviceDetails?: string
   campaignNotes?: string
   campaignGoal?: string
+  creativeType?: string
   paidAdPlatforms?: string[]
   otherPaidAdPlatform?: string
   targetAreas?: string
@@ -94,6 +102,7 @@ export interface ProductDetails {
   websiteUrl?: string
   landingPageUrl?: string
   websitePrimaryGoal?: string
+  projectScope?: string
   pages?: string
   monthlyAdSpend?: number | string
   startDate?: string
@@ -157,6 +166,7 @@ export interface Activity {
 
 export interface Preferences {
   currentRole?: string
+  currentUserName?: string
   filters?: Record<string, unknown>
   calendarMonth?: string
   selectedCalendarDate?: string

@@ -3,13 +3,12 @@ import React from 'react'
 interface Props {
   paymentMethod: string
   paymentOtherMethod: string
-  paymentNotes: string
   onChange: (method: string) => void
   onOtherMethodChange: (value: string) => void
-  onNotesChange: (value: string) => void
+  otherMethodError?: string
 }
 
-export default function PaymentFields({ paymentMethod, paymentOtherMethod, paymentNotes, onChange, onOtherMethodChange, onNotesChange }: Props) {
+export default function PaymentFields({ paymentMethod, paymentOtherMethod, onChange, onOtherMethodChange, otherMethodError }: Props) {
   return (
     <div className="payment-fields">
       <h4>Payment</h4>
@@ -29,11 +28,10 @@ export default function PaymentFields({ paymentMethod, paymentOtherMethod, payme
         <>
           <label>Other payment method</label>
           <input type="text" value={paymentOtherMethod} onChange={e => onOtherMethodChange(e.target.value)} placeholder="Specify payment method" />
+          {otherMethodError ? <span className="field-error">{otherMethodError}</span> : null}
         </>
       )}
 
-      <label>Notes (payment)</label>
-      <textarea value={paymentNotes} onChange={e => onNotesChange(e.target.value)} placeholder="Optional payment notes" rows={3} />
     </div>
   )
 }

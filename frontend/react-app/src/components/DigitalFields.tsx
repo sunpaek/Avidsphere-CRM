@@ -21,215 +21,206 @@ export default function DigitalFields({ details, onChange, errors }: Props) {
   const service = String(details.service || '')
   const socialPlatforms = Array.isArray(details.socialPlatforms) ? details.socialPlatforms : []
   const paidAdPlatforms = Array.isArray(details.paidAdPlatforms) ? details.paidAdPlatforms : []
-
-  const set = (k: string, v: unknown) => onChange({ ...details, [k]: v })
+  const set = (key: string, value: unknown) => onChange({ ...details, [key]: value })
+  const showAdSpend = service === 'Paid Ads' || service === 'Geofencing'
 
   return (
-    <div className="digital-fields">
-      <h4>Digital details</h4>
+    <div className="digital-fields product-field-groups">
+      <section className="product-field-section">
+        <div className="product-field-heading">
+          <span>1</span>
+          <div><h4>Digital Service</h4><p>Select the service being sold.</p></div>
+        </div>
+        <div className="compact-field-grid">
+          <label>Service
+            <select value={service} onChange={event => set('service', event.target.value)}>
+              <option value="">Choose service</option>
+              <option value="Social Media Management">Social Media Management</option>
+              <option value="Paid Ads">Paid Ads</option>
+              <option value="Geofencing">Geofencing</option>
+              <option value="Website">Website</option>
+              <option value="Other">Other</option>
+            </select>
+            {errors?.digitalService && <span className="field-error">{errors.digitalService}</span>}
+          </label>
+        </div>
+      </section>
 
-      <label>Service</label>
-      <select value={service} onChange={e => set('service', e.target.value)}>
-        <option value="">Choose service</option>
-        <option value="Social Media Management">Social Media Management</option>
-        <option value="Paid Ads">Paid Ads</option>
-        <option value="Geofencing">Geofencing</option>
-        <option value="Website">Website</option>
-        <option value="Other">Other</option>
-      </select>
-      {errors?.digitalService && <div className="field-error">{errors.digitalService}</div>}
-
-      <label>Service price</label>
-      <input
-        type="number"
-        min="0"
-        step="0.01"
-        value={details.servicePrice != null ? String(details.servicePrice) : ''}
-        onChange={e => set('servicePrice', Number(e.target.value) || 0)}
-      />
-      {errors?.digitalServicePrice && <div className="field-error">{errors.digitalServicePrice}</div>}
-
-      <label>Discount type</label>
-      <select value={String(details.discountType || 'None')} onChange={e => set('discountType', e.target.value)}>
-        {DISCOUNT_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
-      </select>
-
-      {details.discountType && details.discountType !== 'None' && (
-        <>
-          <label>Discount value</label>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={details.discountValue != null ? String(details.discountValue) : ''}
-            onChange={e => set('discountValue', Number(e.target.value) || 0)}
-          />
-          {errors?.discountValue && <div className="field-error">{errors.discountValue}</div>}
-        </>
-      )}
-
-      <label>Monthly ad spend</label>
-      <input
-        type="number"
-        min="0"
-        value={String(details.monthlyAdSpend != null ? details.monthlyAdSpend : '')}
-        onChange={e => set('monthlyAdSpend', Number(e.target.value) || 0)}
-      />
-      {errors?.digitalSpend && <div className="field-error">{errors.digitalSpend}</div>}
-
-      {service === 'Social Media Management' && (
-        <>
-          <label>Social platforms</label>
-          <div className="checkbox-grid">
-            {SOCIAL_PLATFORMS.map(platform => (
-              <label key={platform} className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={socialPlatforms.includes(platform)}
-                  onChange={() => set('socialPlatforms', toggleArrayValue(socialPlatforms, platform))}
-                />
-                {platform}
-              </label>
-            ))}
+      {service && (
+        <section className="product-field-section">
+          <div className="product-field-heading">
+            <span>2</span>
+            <div><h4>Campaign Details</h4><p>Capture the operational brief for this service.</p></div>
           </div>
-          {errors?.socialPlatforms && <div className="field-error">{errors.socialPlatforms}</div>}
 
-          <label>Social usernames</label>
-          <textarea
-            value={String(details.socialUsernames || '')}
-            onChange={e => set('socialUsernames', e.target.value)}
-            placeholder="Example: Facebook: @handle, Instagram: @handle"
-            rows={2}
-          />
-
-          <label>Start date</label>
-          <input type="date" value={String(details.socialStartDate || details.startDate || '')} onChange={e => set('socialStartDate', e.target.value)} />
-          {errors?.socialStartDate && <div className="field-error">{errors.socialStartDate}</div>}
-
-          <label>Campaign goals</label>
-          <textarea value={String(details.campaignGoal || '')} onChange={e => set('campaignGoal', e.target.value)} rows={2} />
-          <label>Campaign notes</label>
-          <textarea value={String(details.campaignNotes || '')} onChange={e => set('campaignNotes', e.target.value)} rows={2} />
-          {errors?.campaignGoal && <div className="field-error">{errors.campaignGoal}</div>}
-        </>
-      )}
-
-      {service === 'Paid Ads' && (
-        <>
-          <label>Paid ad platforms</label>
-          <div className="checkbox-grid">
-            {PAID_AD_PLATFORMS.map(platform => (
-              <label key={platform} className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={paidAdPlatforms.includes(platform)}
-                  onChange={() => set('paidAdPlatforms', toggleArrayValue(paidAdPlatforms, platform))}
-                />
-                {platform}
+          {service === 'Social Media Management' && (
+            <div className="compact-field-grid">
+              <fieldset className="field-span-full selection-field">
+                <legend>Social platforms</legend>
+                <div className="checkbox-grid">
+                  {SOCIAL_PLATFORMS.map(platform => (
+                    <label key={platform} className="checkbox-label">
+                      <input type="checkbox" checked={socialPlatforms.includes(platform)} onChange={() => set('socialPlatforms', toggleArrayValue(socialPlatforms, platform))} />
+                      {platform}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <label>Username / account handles
+                <input value={String(details.socialUsernames || '')} onChange={event => set('socialUsernames', event.target.value)} placeholder="@business or platform-specific handles" />
+                {errors?.socialUsernames && <span className="field-error">{errors.socialUsernames}</span>}
               </label>
-            ))}
-          </div>
-          {errors?.paidAdPlatforms && <div className="field-error">{errors.paidAdPlatforms}</div>}
-
-          {paidAdPlatforms.includes('Other Paid Ads') && (
-            <>
-              <label>Other paid ad platform</label>
-              <input type="text" value={String(details.otherPaidAdPlatform || '')} onChange={e => set('otherPaidAdPlatform', e.target.value)} placeholder="Specify platform" />
-              {errors?.otherPaidAdPlatform && <div className="field-error">{errors.otherPaidAdPlatform}</div>}
-            </>
+              <label className="field-span-full">Service details
+                <textarea value={String(details.serviceDetails || details.campaignGoal || '')} onChange={event => set('serviceDetails', event.target.value)} placeholder="Platforms managed, posting cadence, content types, community management, reporting…" rows={3} />
+                {errors?.serviceDetails && <span className="field-error">{errors.serviceDetails}</span>}
+              </label>
+            </div>
           )}
 
-          <label>Targeting / geographic areas</label>
-          <input type="text" value={String(details.targetAreas || '')} onChange={e => set('targetAreas', e.target.value)} placeholder="Cities, counties, regions" />
+          {service === 'Paid Ads' && (
+            <div className="compact-field-grid">
+              <label>Campaign goal
+                <input value={String(details.campaignGoal || '')} onChange={event => set('campaignGoal', event.target.value)} placeholder="Leads, sales, awareness, traffic…" />
+                {errors?.campaignGoal && <span className="field-error">{errors.campaignGoal}</span>}
+              </label>
+              <label>Creative type
+                <input value={String(details.creativeType || '')} onChange={event => set('creativeType', event.target.value)} placeholder="Static, video, carousel, search copy…" />
+                {errors?.creativeType && <span className="field-error">{errors.creativeType}</span>}
+              </label>
+              <fieldset className="field-span-full selection-field">
+                <legend>Channels</legend>
+                <div className="checkbox-grid">
+                  {PAID_AD_PLATFORMS.map(platform => (
+                    <label key={platform} className="checkbox-label">
+                      <input type="checkbox" checked={paidAdPlatforms.includes(platform)} onChange={() => set('paidAdPlatforms', toggleArrayValue(paidAdPlatforms, platform))} />
+                      {platform}
+                    </label>
+                  ))}
+                </div>
+                {errors?.paidAdPlatforms && <span className="field-error">{errors.paidAdPlatforms}</span>}
+              </fieldset>
+              {paidAdPlatforms.includes('Other Paid Ads') && (
+                <label>Other channel
+                  <input value={String(details.otherPaidAdPlatform || '')} onChange={event => set('otherPaidAdPlatform', event.target.value)} placeholder="Specify channel" />
+                  {errors?.otherPaidAdPlatform && <span className="field-error">{errors.otherPaidAdPlatform}</span>}
+                </label>
+              )}
+            </div>
+          )}
 
-          <label>Target specific locations</label>
-          <input type="text" value={String(details.targetLocations || '')} onChange={e => set('targetLocations', e.target.value)} placeholder="Specific venues, neighborhoods" />
+          {service === 'Geofencing' && (
+            <div className="compact-field-grid">
+              <label>Campaign type
+                <select value={String(details.campaignType || '')} onChange={event => set('campaignType', event.target.value)}>
+                  <option value="">Select campaign type</option>
+                  {GEOFENCE_CAMPAIGNS.map(type => <option key={type} value={type}>{type}</option>)}
+                </select>
+                {errors?.campaignType && <span className="field-error">{errors.campaignType}</span>}
+              </label>
+              <label>Campaign goal
+                <input value={String(details.campaignGoal || '')} onChange={event => set('campaignGoal', event.target.value)} placeholder="Visits, awareness, retargeting…" />
+              </label>
+            </div>
+          )}
 
-          <label>Demographic targeting</label>
-          <div className="filter-grid">
-            <label>Age range<input type="text" value={String(details.demographicAge || '')} onChange={e => set('demographicAge', e.target.value)} placeholder="e.g. 25-45" /></label>
-            <label>Gender<input type="text" value={String(details.demographicSex || '')} onChange={e => set('demographicSex', e.target.value)} placeholder="e.g. All, Female, Male" /></label>
-            <label>Income<input type="text" value={String(details.demographicIncome || '')} onChange={e => set('demographicIncome', e.target.value)} placeholder="e.g. $45k+" /></label>
+          {service === 'Website' && (
+            <div className="compact-field-grid">
+              <label>Project type
+                <select value={String(details.websiteOption || '')} onChange={event => set('websiteOption', event.target.value)}>
+                  <option value="">Select project type</option>
+                  {WEBSITE_OPTIONS.map(option => <option key={option} value={option}>{option}</option>)}
+                </select>
+                {errors?.websiteOption && <span className="field-error">{errors.websiteOption}</span>}
+              </label>
+              <label>Website URL
+                <input type="url" value={String(details.websiteUrl || '')} onChange={event => set('websiteUrl', event.target.value)} placeholder="https://example.com" />
+                {errors?.websiteUrl && <span className="field-error">{errors.websiteUrl}</span>}
+              </label>
+              <label className="field-span-full">Project scope
+                <textarea value={String(details.projectScope || details.websitePrimaryGoal || details.pages || '')} onChange={event => set('projectScope', event.target.value)} placeholder="Pages, functionality, integrations, conversion goals, and deliverables." rows={3} />
+                {errors?.projectScope && <span className="field-error">{errors.projectScope}</span>}
+              </label>
+            </div>
+          )}
+
+          {service === 'Other' && (
+            <div className="compact-field-grid">
+              <label className="field-span-full">Service details
+                <textarea value={String(details.serviceDetails || '')} onChange={event => set('serviceDetails', event.target.value)} placeholder="Describe the service and required deliverables." rows={3} />
+              </label>
+            </div>
+          )}
+        </section>
+      )}
+
+      {service && (
+        <section className="product-field-section">
+          <div className="product-field-heading">
+            <span>3</span>
+            <div><h4>Targeting / Dates</h4><p>Define timing and audience details where they apply.</p></div>
           </div>
-
-          <label>Start date</label>
-          <input type="date" value={String(details.startDate || '')} onChange={e => set('startDate', e.target.value)} />
-          <label>Campaign goals</label>
-          <textarea value={String(details.campaignGoal || '')} onChange={e => set('campaignGoal', e.target.value)} rows={2} />
-          <label>Campaign notes</label>
-          <textarea value={String(details.campaignNotes || '')} onChange={e => set('campaignNotes', e.target.value)} rows={2} />
-          {errors?.campaignGoal && <div className="field-error">{errors.campaignGoal}</div>}
-        </>
-      )}
-
-      {service === 'Geofencing' && (
-        <>
-          <label>Campaign type</label>
-          <select value={String(details.campaignType || '')} onChange={e => set('campaignType', e.target.value)}>
-            <option value="">Select campaign type</option>
-            {GEOFENCE_CAMPAIGNS.map(type => <option key={type} value={type}>{type}</option>)}
-          </select>
-          {errors?.campaignType && <div className="field-error">{errors.campaignType}</div>}
-
-          <label>Target geographic areas</label>
-          <input type="text" value={String(details.targetAreas || '')} onChange={e => set('targetAreas', e.target.value)} placeholder="Cities, counties, regions" />
-
-          <label>Target specific locations</label>
-          <input type="text" value={String(details.targetLocations || '')} onChange={e => set('targetLocations', e.target.value)} placeholder="Specific venues, neighborhoods" />
-
-          <label>Demographic targeting</label>
-          <div className="filter-grid">
-            <label>Age range<input type="text" value={String(details.demographicAge || '')} onChange={e => set('demographicAge', e.target.value)} placeholder="e.g. 25-45" /></label>
-            <label>Gender<input type="text" value={String(details.demographicSex || '')} onChange={e => set('demographicSex', e.target.value)} placeholder="e.g. All, Female, Male" /></label>
-            <label>Income<input type="text" value={String(details.demographicIncome || '')} onChange={e => set('demographicIncome', e.target.value)} placeholder="e.g. $45k+" /></label>
+          <div className="compact-field-grid">
+            <label>Start date
+              <input
+                type="date"
+                value={String(service === 'Social Media Management' ? details.socialStartDate || details.startDate || '' : details.startDate || '')}
+                onChange={event => set(service === 'Social Media Management' ? 'socialStartDate' : 'startDate', event.target.value)}
+              />
+              {(errors?.socialStartDate || errors?.startDate) && <span className="field-error">{errors.socialStartDate || errors.startDate}</span>}
+            </label>
+            {(service === 'Paid Ads' || service === 'Geofencing') && (
+              <>
+                <label>Geo areas
+                  <input value={String(details.targetAreas || '')} onChange={event => set('targetAreas', event.target.value)} placeholder="Cities, ZIP codes, counties, regions" />
+                  {errors?.targetAreas && <span className="field-error">{errors.targetAreas}</span>}
+                </label>
+                <label>Specific locations
+                  <input value={String(details.targetLocations || '')} onChange={event => set('targetLocations', event.target.value)} placeholder="Venues, addresses, neighborhoods, competitors" />
+                </label>
+                <fieldset className="field-span-full demographic-fields">
+                  <legend>Demographics</legend>
+                  <div className="compact-field-grid compact-field-grid--three">
+                    <label>Age range<input value={String(details.demographicAge || '')} onChange={event => set('demographicAge', event.target.value)} placeholder="25–45" /></label>
+                    <label>Gender<input value={String(details.demographicSex || '')} onChange={event => set('demographicSex', event.target.value)} placeholder="All" /></label>
+                    <label>Income<input value={String(details.demographicIncome || '')} onChange={event => set('demographicIncome', event.target.value)} placeholder="$45k+" /></label>
+                  </div>
+                </fieldset>
+              </>
+            )}
           </div>
-
-          <label>Monthly ad spend</label>
-          <input type="number" min="0" step="1" value={String(details.monthlyAdSpend || '')} onChange={e => set('monthlyAdSpend', Number(e.target.value) || 0)} />
-
-          <label>Start date</label>
-          <input type="date" value={String(details.startDate || '')} onChange={e => set('startDate', e.target.value)} />
-          {errors?.startDate && <div className="field-error">{errors.startDate}</div>}
-
-          <label>Campaign goals</label>
-          <textarea value={String(details.campaignGoal || '')} onChange={e => set('campaignGoal', e.target.value)} rows={2} />
-          <label>Campaign notes</label>
-          <textarea value={String(details.campaignNotes || '')} onChange={e => set('campaignNotes', e.target.value)} rows={2} />
-        </>
+        </section>
       )}
 
-      {service === 'Website' && (
-        <>
-          <label>Website option</label>
-          <select value={String(details.websiteOption || '')} onChange={e => set('websiteOption', e.target.value)}>
-            <option value="">Select option</option>
-            {WEBSITE_OPTIONS.map(option => <option key={option} value={option}>{option}</option>)}
-          </select>
-          {errors?.websiteOption && <div className="field-error">{errors.websiteOption}</div>}
-
-          <label>Current website / URL</label>
-          <input type="text" value={String(details.websiteUrl || '')} onChange={e => set('websiteUrl', e.target.value)} placeholder="https://example.com" />
-
-          <label>Landing page / conversion URL</label>
-          <input type="text" value={String(details.landingPageUrl || '')} onChange={e => set('landingPageUrl', e.target.value)} placeholder="https://example.com/landing" />
-
-          <label>Desired website / goals</label>
-          <input type="text" value={String(details.websitePrimaryGoal || '')} onChange={e => set('websitePrimaryGoal', e.target.value)} placeholder="Lead gen, e-commerce, information" />
-          {errors?.websitePrimaryGoal && <div className="field-error">{errors.websitePrimaryGoal}</div>}
-
-          <label>Pages</label>
-          <input type="text" value={String(details.pages || '')} onChange={e => set('pages', e.target.value)} placeholder="Home, About, Contact" />
-
-          <label>Project notes</label>
-          <textarea value={String(details.campaignNotes || '')} onChange={e => set('campaignNotes', e.target.value)} rows={2} />
-        </>
-      )}
-
-      {service === 'Other' && (
-        <>
-          <label>Service notes</label>
-          <textarea value={String(details.campaignNotes || details.description || '')} onChange={e => set('campaignNotes', e.target.value)} rows={3} />
-        </>
+      {service && (
+        <section className="product-field-section">
+          <div className="product-field-heading">
+            <span>4</span>
+            <div><h4>Pricing</h4><p>Enter the service fee, media budget, and discount.</p></div>
+          </div>
+          <div className="compact-field-grid">
+            <label>Service price
+              <input type="number" min="0" step="0.01" value={details.servicePrice != null ? String(details.servicePrice) : ''} onChange={event => set('servicePrice', Number(event.target.value) || 0)} placeholder="0.00" />
+              {errors?.digitalServicePrice && <span className="field-error">{errors.digitalServicePrice}</span>}
+            </label>
+            {showAdSpend && (
+              <label>Monthly ad spend
+                <input type="number" min="0" step="1" value={String(details.monthlyAdSpend ?? '')} onChange={event => set('monthlyAdSpend', Number(event.target.value) || 0)} placeholder="0.00" />
+                {errors?.digitalSpend && <span className="field-error">{errors.digitalSpend}</span>}
+              </label>
+            )}
+            <label>Discount type
+              <select value={String(details.discountType || 'None')} onChange={event => set('discountType', event.target.value)}>
+                {DISCOUNT_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+              </select>
+            </label>
+            {details.discountType && details.discountType !== 'None' && (
+              <label>Discount value
+                <input type="number" min="0" step="0.01" value={details.discountValue != null ? String(details.discountValue) : ''} onChange={event => set('discountValue', Number(event.target.value) || 0)} placeholder="0.00" />
+                {errors?.discountValue && <span className="field-error">{errors.discountValue}</span>}
+              </label>
+            )}
+          </div>
+        </section>
       )}
     </div>
   )
