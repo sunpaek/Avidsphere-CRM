@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { readCRMData, useLocalStorageAdapter, writeCRMData } from '@/hooks/useLocalStorageAdapter'
 import type { Notification, Sale } from '@/types'

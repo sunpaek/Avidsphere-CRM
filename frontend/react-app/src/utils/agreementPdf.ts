@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf'
 import type { Sale, Customer, ProductDetails } from '@/types'
 import { calculateMailerTotal, MAILER_PRICES, type MailerSizeOption } from '@/utils/mailerPricing'
-import avidsphereLogo from '../../../Assets/logo.png'
+import avidsphereLogo from '@/assets/logo.png'
 
 const PAGE_WIDTH = 612
 const PAGE_HEIGHT = 792

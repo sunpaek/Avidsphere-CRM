@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { readCRMData, updateSale, useLocalStorageAdapter, writeCRMData } from '@/hooks/useLocalStorageAdapter'
 import type { Customer, Sale } from '@/types'

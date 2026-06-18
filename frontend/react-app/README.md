@@ -1,21 +1,21 @@
-React + TypeScript + Vite + Tailwind scaffold (minimal)
+# AvidSphere CRM React Frontend
 
-How to run (from this folder):
+This directory contains the active AvidSphere CRM application and is the frontend source of truth.
 
-1. Install dependencies:
-
-```bash
-cd frontend/react-app
+```powershell
 npm install
-```
-
-2. Start dev server:
-
-```bash
 npm run dev
 ```
 
-Notes:
-- This scaffold is a separate app and will not modify the existing `frontend/index.html`, `frontend/script.js`, or `frontend/style.css`.
-- The dev server runs on port 5173 by default. It is a standalone React shell to be used to incrementally migrate views.
-- Tailwind is configured; edit `src/index.css` to add utilities.
+The Vite development server runs at `http://127.0.0.1:5173`. The app stores current MVP data in browser `localStorage`, generates agreement PDFs in the browser, and calls the backend email API at `http://localhost:3000` by default.
+
+Set `VITE_API_BASE` in a local environment file when the backend is hosted elsewhere.
+
+Useful commands:
+
+```powershell
+npm run build
+npm run preview
+```
+
+The pre-React CRM is preserved under `../../archive/legacy-crm/` as a parity and historical reference.

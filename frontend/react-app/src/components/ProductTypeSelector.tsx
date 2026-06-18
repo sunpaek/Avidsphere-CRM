@@ -1,5 +1,3 @@
-import React from 'react'
-
 interface Props {
   value: 'Mailer' | 'Print' | 'Digital'
   onChange: (v: 'Mailer' | 'Print' | 'Digital') => void

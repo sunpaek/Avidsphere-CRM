@@ -3,7 +3,7 @@ import { useLocalStorageAdapter } from '@/hooks/useLocalStorageAdapter'
 import type { ReactNode } from 'react'
 import DeveloperTools from './DeveloperTools'
 import { canonicalizeDepartmentName } from '@/utils/departments'
-import avidsphereLogo from '../../../Assets/logo.png'
+import avidsphereLogo from '@/assets/logo.png'
 
 type LegacyLayoutProps = {
   children: ReactNode

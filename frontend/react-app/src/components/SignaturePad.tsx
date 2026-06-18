@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 
 interface Props {
   width?: number
@@ -63,7 +63,7 @@ export default function SignaturePad({ width = 600, height = 160, onChange }: Pr
     hasStrokes.current = true
     last.current = p
   }
-  function pointerUp(e?: PointerEvent | TouchEvent | MouseEvent) {
+  function pointerUp(_event?: PointerEvent | TouchEvent | MouseEvent) {
     drawing.current = false
     emitChange()
   }

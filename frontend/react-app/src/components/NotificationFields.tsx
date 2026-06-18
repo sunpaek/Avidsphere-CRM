@@ -1,4 +1,3 @@
-import React from 'react'
 import type { Sale, ProductDetails } from '@/types'
 import { DEPARTMENT_NOTIFICATION_OPTIONS } from '@/utils/departments'
 

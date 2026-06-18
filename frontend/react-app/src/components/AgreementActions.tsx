@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import type { Sale, Customer } from '@/types'
 import SignaturePad from './SignaturePad'
 import { downloadAgreementPdfFile } from '@/utils/agreementPdf'

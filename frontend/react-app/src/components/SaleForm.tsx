@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import type { Customer, ProductDetails, Sale } from '@/types'
 import { saveSale, updateSale } from '@/hooks/useLocalStorageAdapter'
 import { notificationApi } from '@/services/notificationApi'

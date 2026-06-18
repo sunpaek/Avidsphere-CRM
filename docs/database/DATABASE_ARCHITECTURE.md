@@ -465,7 +465,7 @@ Mailer Details:
 └─ Design/mailing services required
 
 Notification Flow:
-├─ Sale created → Notify: Management, Design team
+├─ Sale created → Notify: Management, Designers
 ├─ Design approved → Notify: Print team
 └─ Mailing complete → Notify: Sales rep, Management
 ```
